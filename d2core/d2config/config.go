@@ -9,6 +9,67 @@ import (
 	"runtime"
 )
 
+// Configuration defines the configuration for the engine, loaded from config.json
+type configManager struct {
+	MpqLoadOrder    []string
+	Language        string
+	MpqPath         string
+	TicksPerSecond  int
+	FpsCap          int
+	SfxVolume       float64
+	BgmVolume       float64
+	FullScreen      bool
+	RunInBackground bool
+	VsyncEnabled    bool
+}
+
+var singleton = getDefaultConfig()
+
+func (cf *configManager) Load() error {
+	configPaths := []string{
+		getLocalConfigPath(),
+		getDefaultConfigPath(),
+	}
+
+	var loaded bool
+	for _, configPath := range configPaths {
+		log.Printf("loading configuration file from %s...", configPath)
+		if err := load(configPath); err == nil {
+			loaded = true
+			break
+		}
+	}
+
+	if !loaded {
+		log.Println("failed to load configuration file, saving default configuration...")
+		if err := Save(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (cf *configManager) Save() error {
+	configPath := getDefaultConfigPath()
+	log.Printf("saving configuration file to %s...", configPath)
+
+	var err error
+	if err = save(configPath); err != nil {
+		log.Printf("failed to write configuration file (%s)", err)
+	}
+
+	return err
+}
+
+func (cf *configManager) Get() Configuration {
+	if singleton == nil {
+		panic("configuration is not initialized")
+	}
+
+	return *singleton
+}
+
 func getDefaultConfig() *Configuration {
 	config := &Configuration{
 		Language:        "ENG",
@@ -64,7 +125,7 @@ func getDefaultConfig() *Configuration {
 	return config
 }
 
-func getDefaultConfigPath() string {
+func (cf *configManager) getDefaultConfigPath() string {
 	if configDir, err := os.UserConfigDir(); err == nil {
 		return path.Join(configDir, "OpenDiablo2", "config.json")
 	}
@@ -72,11 +133,11 @@ func getDefaultConfigPath() string {
 	return getLocalConfigPath()
 }
 
-func getLocalConfigPath() string {
+func (cf *configManager) getLocalConfigPath() string {
 	return path.Join(path.Dir(os.Args[0]), "config.json")
 }
 
-func load(configPath string) error {
+func (cf *configManager) load(configPath string) error {
 	configFile, err := os.Open(configPath)
 	if err != nil {
 		return err
@@ -94,7 +155,7 @@ func load(configPath string) error {
 	return nil
 }
 
-func save(configPath string) error {
+func (cf *configManager) save(configPath string) error {
 	configDir := path.Dir(configPath)
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return err

@@ -5,21 +5,14 @@ import (
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2asset"
 	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2audio"
+	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2interface"
 	"github.com/hajimehoshi/ebiten/audio/wav"
 
 	"github.com/hajimehoshi/ebiten/audio"
 )
 
-type AudioProvider struct {
-	audioContext *audio.Context // The Audio context
-	bgmAudio     *audio.Player  // The audio player
-	lastBgm      string
-	sfxVolume    float64
-	bgmVolume    float64
-}
-
-func CreateAudio() (*AudioProvider, error) {
-	result := &AudioProvider{}
+func CreateAudio() (d2interface.AudioManager, error) {
+	result := &AudioManager{}
 	var err error
 	result.audioContext, err = audio.NewContext(44100)
 	if err != nil {
@@ -29,7 +22,15 @@ func CreateAudio() (*AudioProvider, error) {
 	return result, nil
 }
 
-func (eap *AudioProvider) PlayBGM(song string) {
+type AudioManager struct {
+	audioContext *audio.Context // The Audio context
+	bgmAudio     *audio.Player  // The audio player
+	lastBgm      string
+	sfxVolume    float64
+	bgmVolume    float64
+}
+
+func (eap *AudioManager) PlayBGM(song string) {
 	if eap.lastBgm == song {
 		return
 	}
@@ -70,12 +71,12 @@ func (eap *AudioProvider) PlayBGM(song string) {
 	}
 }
 
-func (eap *AudioProvider) LoadSoundEffect(sfx string) (d2audio.SoundEffect, error) {
+func (eap *AudioManager) LoadSoundEffect(sfx string) (d2audio.SoundEffect, error) {
 	result := CreateSoundEffect(sfx, eap.audioContext, eap.sfxVolume) // TODO: Split
 	return result, nil
 }
 
-func (eap *AudioProvider) SetVolumes(bgmVolume, sfxVolume float64) {
+func (eap *AudioManager) SetVolumes(bgmVolume, sfxVolume float64) {
 	eap.sfxVolume = sfxVolume
 	eap.bgmVolume = bgmVolume
 }
