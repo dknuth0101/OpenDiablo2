@@ -1,12 +1,10 @@
 package d2config
 
 import (
-	"log"
-
 	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2interface"
 )
 
-func Bind(e d2interface.od2EngineInterface) error {
+func Bind(e d2interface.Od2EngineInterface) error {
 
 	cm := &configManager{}
 

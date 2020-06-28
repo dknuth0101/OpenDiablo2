@@ -4,7 +4,7 @@ import (
 	"image"
 )
 
-type od2EngineInterface interface {
+type Od2EngineInterface interface {
 	Run(func(Surface) error) error
 
 	Version() string

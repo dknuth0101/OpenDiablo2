@@ -14,7 +14,7 @@ import (
 	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2ui"
 )
 
-func Create(version, branch, commit string) (d2interface.od2EngineInterface, error) {
+func Create(version, branch, commit string) (*od2Engine, error) {
 	engine := &od2Engine{
 		version: version,
 		branch:  branch,
@@ -71,7 +71,7 @@ func Create(version, branch, commit string) (d2interface.od2EngineInterface, err
 
 // bindTerminalCommands calls the BindTerminalCommands method on each of the
 // game engine's managers
-func bindTerminalCommands(e d2interface.od2EngineInterface) {
+func bindTerminalCommands(e d2interface.Od2EngineInterface) {
 	e.assetManager.BindTerminalCommands()
 	e.audioManager.BindTerminalCommands()
 	e.configManager.BindTerminalCommands()

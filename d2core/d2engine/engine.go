@@ -1,7 +1,9 @@
 package d2engine
 
 import (
+	"bytes"
 	"errors"
+	"fmt"
 	"image"
 	"image/gif"
 	"image/png"
@@ -9,9 +11,19 @@ import (
 	"os"
 	"runtime"
 	"runtime/pprof"
+	"strconv"
+	"sync"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2data"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2data/d2datadict"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2resource"
 	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2interface"
+	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2inventory"
+	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2render/ebiten"
+	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2screen"
+	"github.com/OpenDiablo2/OpenDiablo2/d2game/d2gamescreen"
+	"github.com/OpenDiablo2/OpenDiablo2/d2script"
 )
 
 const (
@@ -19,7 +31,7 @@ const (
 	defaultTimeScale float64 = 1.0
 )
 
-// od2Engine is an implementation of the od2EngineInterface interface
+// od2Engine is an implementation of the Od2EngineInterface interface
 type od2Engine struct {
 	version string
 	branch  string
