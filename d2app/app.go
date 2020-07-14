@@ -54,7 +54,7 @@ type App struct {
 
 	// Components
 	components   []d2interface.AppComponent
-	asset        d2interface.AssetManager
+	assetManager d2interface.AssetManager
 	terminal     d2interface.Terminal
 	audio        d2interface.AudioProvider
 	renderer     d2interface.Renderer
@@ -64,69 +64,39 @@ type App struct {
 
 // Input returns the input manager
 func (p *App) Input() (d2interface.InputManager, error) {
-	if p.input == nil {
-		return nil, errors.New("no input manager bound to app")
-	}
-
-	return p.input, nil
+	return p.input, errIfNotBound("input_manager", p.input != nil)
 }
 
 // Audio returns the audio provider
 func (p *App) Audio() (d2interface.AudioProvider, error) {
-	if p.audio == nil {
-		return nil, errors.New("no audio provider bound to app")
-	}
-	return p.audio, nil
+	return p.audio, errIfNotBound("audio_provider", p.audio != nil)
 }
 
+// Renderer returns the renderer component
 func (p *App) Renderer() (d2interface.Renderer, error) {
-	if p.renderer == nil {
-		return nil, errors.New("no renderer bound to app")
-	}
-
-	return p.renderer, nil
+	return p.renderer, errIfNotBound("renderer", p.renderer != nil)
 }
 
+// Terminal returns the terminal component
 func (p *App) Terminal() (d2interface.Terminal, error) {
-	if p.terminal == nil {
-		return nil, errors.New("no terminal bound to app")
-	}
-
-	return p.terminal, nil
+	return p.terminal, errIfNotBound("terminal", p.terminal != nil)
 }
 
+// Asset returns the asset manager
 func (p *App) Asset() (d2interface.AssetManager, error) {
-	if p.asset == nil {
-		return nil, errors.New("no asset manager bound to app")
-	}
-
-	return p.asset, nil
+	return p.assetManager, errIfNotBound("asset_manager", p.assetManager != nil)
 }
 
+// Script returns the script engine
 func (p *App) Script() (d2interface.ScriptEngine, error) {
-	if p.scriptEngine == nil {
-		return nil, errors.New("no script engine bound to app")
-	}
-
-	return p.scriptEngine, nil
+	return p.scriptEngine, errIfNotBound("script_engine", p.scriptEngine != nil)
 }
 
-// BindAppComponent makes a two-way reference between the app and the component
-func (p *App) BindAppComponent(component d2interface.AppComponent) {
-	switch component.(type) {
-	case d2interface.AssetManager:
-		p.asset = component.(d2interface.AssetManager)
-	case d2interface.Terminal:
-		p.terminal = component.(d2interface.Terminal)
-	case d2interface.AudioProvider:
-		p.audio = component.(d2interface.AudioProvider)
-	case d2interface.Renderer:
-		p.renderer = component.(d2interface.Renderer)
-	case d2interface.InputManager:
-		p.input = component.(d2interface.InputManager)
-	case d2interface.ScriptEngine:
-		p.scriptEngine = component.(d2interface.ScriptEngine)
+func errIfNotBound(componentName string, ok bool) error {
+	if !ok {
+		return errors.New(fmt.Sprintf("component: %s is not bound to app", componentName))
 	}
+	return nil
 }
 
 type bindTerminalEntry struct {
@@ -173,11 +143,29 @@ func Create() *App {
 	addComponent(ebitenAudio.CreateAudio())
 
 	for _, c := range app.components {
-		app.BindAppComponent(c)
+		app.bindAppComponent(c)
 		panicIfErr(c.BindApp(app)) // Give the components a reference to the app
 	}
 
 	return app
+}
+
+// bindAppComponent makes a two-way reference between the app and the component
+func (p *App) bindAppComponent(component d2interface.AppComponent) {
+	switch component.(type) {
+	case d2interface.AssetManager:
+		p.assetManager = component.(d2interface.AssetManager)
+	case d2interface.Terminal:
+		p.terminal = component.(d2interface.Terminal)
+	case d2interface.AudioProvider:
+		p.audio = component.(d2interface.AudioProvider)
+	case d2interface.Renderer:
+		p.renderer = component.(d2interface.Renderer)
+	case d2interface.InputManager:
+		p.input = component.(d2interface.InputManager)
+	case d2interface.ScriptEngine:
+		p.scriptEngine = component.(d2interface.ScriptEngine)
+	}
 }
 
 // Run executes the application and kicks off the entire game process
@@ -239,7 +227,7 @@ func (p *App) initialize() error {
 		}
 	}
 
-	if err := d2gui.Initialize(p.asset, p.input); err != nil {
+	if err := d2gui.Initialize(p.assetManager, p.input); err != nil {
 		return err
 	}
 
