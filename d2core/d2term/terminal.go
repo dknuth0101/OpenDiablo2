@@ -81,11 +81,6 @@ type terminal struct {
 	actions map[string]termActionEntry
 }
 
-// Name of the component
-func (s *terminal) Name() string {
-	return "terminal"
-}
-
 // BindApp binds to an app instance
 func (t *terminal) BindApp(app d2interface.App) error {
 	if t.app != nil {

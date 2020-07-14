@@ -23,10 +23,6 @@ type assetManager struct {
 	fontManager             d2interface.ArchivedFontManager
 }
 
-func (am *assetManager) Name() string {
-	return "asset_manager"
-}
-
 // BindApp binds to the OpenDiablo2 app
 func (am *assetManager) BindApp(app d2interface.App) error {
 	if am.app != nil {

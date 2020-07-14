@@ -31,11 +31,6 @@ type Renderer struct {
 	renderCallback func(surface d2interface.Surface) error
 }
 
-// Name of the component
-func (s *Renderer) Name() string {
-	return "renderer"
-}
-
 // BindApp binds the renderer to the App instance
 func (r *Renderer) BindApp(app d2interface.App) error {
 	if r.app != nil {

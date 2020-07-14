@@ -19,11 +19,6 @@ type ScriptEngine struct {
 	isEvalAllowed bool
 }
 
-// Name of the component
-func (s *ScriptEngine) Name() string {
-	return "script_engine"
-}
-
 // BindApp binds the renderer to the App instance
 func (s *ScriptEngine) BindApp(app d2interface.App) error {
 	if s.app != nil {

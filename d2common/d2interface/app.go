@@ -18,7 +18,6 @@ type App interface {
 // AppComponents are bound and initialized by the App.
 // This ensures that component dependencies don't make the app explode.
 type AppComponent interface {
-	Name() string
 	BindApp(App) error
 	Initialize() error
 }

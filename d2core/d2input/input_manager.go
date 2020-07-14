@@ -20,11 +20,6 @@ type inputManager struct {
 	entries handlerEntryList
 }
 
-// Name returns the name of the component
-func (im *inputManager) Name() string {
-	return "input_manager"
-}
-
 // BindApp binds to an app instance
 func (im *inputManager) BindApp(app d2interface.App) error {
 	if im.app != nil {
