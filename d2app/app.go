@@ -6,9 +6,6 @@ import (
 	"container/ring"
 	"errors"
 	"fmt"
-	ebitenAudio "github.com/OpenDiablo2/OpenDiablo2/d2core/d2audio/ebiten"
-	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2render/ebiten"
-	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2term"
 	"image"
 	"image/gif"
 	"image/png"
@@ -18,6 +15,10 @@ import (
 	"runtime/pprof"
 	"strconv"
 	"sync"
+
+	ebitenAudio "github.com/OpenDiablo2/OpenDiablo2/d2core/d2audio/ebiten"
+	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2render/ebiten"
+	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2term"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2data"
@@ -47,15 +48,18 @@ type App struct {
 	captureFrames     []*image.RGBA
 	gitBranch         string
 	gitCommit         string
-	config			  *d2config.Configuration
-	asset             d2interface.AssetManager
-	terminal          d2interface.Terminal
-	audio             d2interface.AudioProvider
-	renderer          d2interface.Renderer
-	input             d2interface.InputManager
-	scriptEngine 	  d2interface.ScriptEngine
+	config            *d2config.Configuration
 	tAllocSamples     *ring.Ring
-	running 		  bool
+	running           bool
+
+	// Components
+	components   []d2interface.AppComponent
+	asset        d2interface.AssetManager
+	terminal     d2interface.Terminal
+	audio        d2interface.AudioProvider
+	renderer     d2interface.Renderer
+	input        d2interface.InputManager
+	scriptEngine d2interface.ScriptEngine
 }
 
 // Input returns the input manager
@@ -72,7 +76,6 @@ func (p *App) Audio() (d2interface.AudioProvider, error) {
 	if p.audio == nil {
 		return nil, errors.New("no audio provider bound to app")
 	}
-
 	return p.audio, nil
 }
 
@@ -109,10 +112,7 @@ func (p *App) Script() (d2interface.ScriptEngine, error) {
 }
 
 // BindAppComponent makes a two-way reference between the app and the component
-func (p *App) BindAppComponent(component d2interface.AppComponent) error {
-	if err := component.BindApp(p); err != nil {
-		return err
-	}
+func (p *App) BindAppComponent(component d2interface.AppComponent) {
 	switch component.(type) {
 	case d2interface.AssetManager:
 		p.asset = component.(d2interface.AssetManager)
@@ -127,7 +127,6 @@ func (p *App) BindAppComponent(component d2interface.AppComponent) error {
 	case d2interface.ScriptEngine:
 		p.scriptEngine = component.(d2interface.ScriptEngine)
 	}
-	return nil
 }
 
 type bindTerminalEntry struct {
@@ -143,80 +142,39 @@ const (
 	debugPopN       = 6
 )
 
-// Create creates a new instance of the application
-func Create(gitBranch, gitCommit string) *App {
-	if err := d2config.Load(); err != nil {
-		panic(err)
+func panicIfErr(err error) {
+	if err != nil {
+		panic(err) // TODO: Are we sure we want to panic here?
 	}
+}
+
+// Create creates a new instance of the application
+func Create() *App {
+	panicIfErr(d2config.Load())
 	config := d2config.Config
 
-	scriptEngine, err := d2script.CreateScriptEngine()
-	if err != nil {
-		panic(err)
-	}
-
-	// Create our providers
-	renderer, err := ebiten.CreateRenderer()
-	if err != nil {
-		panic(err)
-	}
-
-	input, err := d2input.Create() // TODO d2input singleton must be init before d2term
-	if err != nil {
-		panic(err)
-	}
-
-	terminal, err := d2term.Create()
-	if err != nil {
-		panic(err)
-	}
-
-	assetManager, err := d2asset.Create()
-	if err != nil {
-		panic(err)
-	}
-
-	audio, err := ebitenAudio.CreateAudio()
-	if err != nil {
-		panic(err)
-	}
-
 	app := &App{
-		gitBranch:     gitBranch,
-		gitCommit:     gitCommit,
 		tAllocSamples: createZeroedRing(nSamplesTAlloc),
-		config: config,
-		running: true,
+		config:        config,
+		running:       true,
+		components:    []d2interface.AppComponent{},
 	}
 
-	err = app.BindAppComponent(scriptEngine)
-	if err != nil {
-		panic(err)
+	addComponent := func(c d2interface.AppComponent, err error) {
+		panicIfErr(err)
+		app.components = append(app.components, c)
 	}
 
-	err = app.BindAppComponent(assetManager)
-	if err != nil {
-		panic(err)
-	}
+	addComponent(d2script.CreateScriptEngine())
+	addComponent(ebiten.CreateRenderer())
+	addComponent(d2input.Create()) // TODO d2input singleton must be init before d2term
+	addComponent(d2term.Create())
+	addComponent(d2asset.Create())
+	addComponent(ebitenAudio.CreateAudio())
 
-	err = app.BindAppComponent(input)
-	if err != nil {
-		panic(err)
-	}
-
-	err = app.BindAppComponent(renderer)
-	if err != nil {
-		panic(err)
-	}
-
-	err = app.BindAppComponent(terminal)
-	if err != nil {
-		panic(err)
-	}
-
-	err = app.BindAppComponent(audio)
-	if err != nil {
-		panic(err)
+	for _, c := range app.components {
+		app.BindAppComponent(c)
+		panicIfErr(c.BindApp(app)) // Give the components a reference to the app
 	}
 
 	return app
@@ -224,7 +182,6 @@ func Create(gitBranch, gitCommit string) *App {
 
 // Run executes the application and kicks off the entire game process
 func (p *App) Run() error {
-
 	windowTitle := fmt.Sprintf("OpenDiablo2 (%s)", p.gitBranch)
 	// If we fail to initialize, we will show the error screen
 	if err := p.initialize(); err != nil {
@@ -237,12 +194,6 @@ func (p *App) Run() error {
 
 	d2screen.SetNextScreen(d2gamescreen.CreateMainMenu(p.renderer, p.audio, p.terminal, p.scriptEngine))
 
-	if p.gitBranch == "" {
-		p.gitBranch = "Local Build"
-	}
-
-	d2common.SetBuildInfo(p.gitBranch, p.gitCommit)
-
 	if err := p.renderer.Run(p.update, 800, 600, windowTitle); err != nil {
 		return err
 	}
@@ -251,55 +202,10 @@ func (p *App) Run() error {
 }
 
 func (p *App) initialize() error {
-
-	asset, err := p.Asset()
-	if err != nil {
-		return err
-	}
-
-	err = asset.Initialize()
-	if err != nil {
-		return err
-	}
-
-	input, err := p.Input()
-	if err != nil {
-		return err
-	}
-
-	err = input.Initialize()
-	if err != nil {
-		return err
-	}
-
-	render, err := p.Renderer()
-	if err != nil {
-		return err
-	}
-
-	err = render.Initialize()
-	if err != nil {
-		return err
-	}
-
-	terminal, err := p.Terminal()
-	if err != nil {
-		return err
-	}
-
-	err = terminal.Initialize()
-	if err != nil {
-		return err
-	}
-
-	audio, err := p.Audio()
-	if err != nil {
-		return err
-	}
-
-	err = audio.Initialize()
-	if err != nil {
-		return err
+	for _, c := range p.components {
+		if err := c.Initialize(); err != nil {
+			return err
+		}
 	}
 
 	p.timeScale = 1.0
@@ -333,7 +239,7 @@ func (p *App) initialize() error {
 		}
 	}
 
-	if err := d2gui.Initialize(asset, input); err != nil {
+	if err := d2gui.Initialize(p.asset, p.input); err != nil {
 		return err
 	}
 

@@ -1,10 +1,12 @@
 package main
 
 import (
-	"github.com/pkg/profile"
-	"gopkg.in/alecthomas/kingpin.v2"
 	"log"
 	"strings"
+
+	"github.com/OpenDiablo2/OpenDiablo2/d2common"
+	"github.com/pkg/profile"
+	"gopkg.in/alecthomas/kingpin.v2"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2app"
 )
@@ -31,7 +33,13 @@ func main() {
 		}
 	}
 
-	app := d2app.Create(GitBranch, GitCommit)
+	// Setting build info
+	if GitBranch == "" {
+		GitBranch = "Local Build"
+	}
+	d2common.SetBuildInfo(GitBranch, GitCommit)
+
+	app := d2app.Create()
 	if err := app.Run(); err != nil {
 		return
 	}

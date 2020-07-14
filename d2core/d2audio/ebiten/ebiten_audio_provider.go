@@ -25,6 +25,11 @@ type AudioProvider struct {
 	bgmVolume    float64
 }
 
+// Name of the component
+func (s *AudioProvider) Name() string {
+	return "audio_provider"
+}
+
 // BindApp binds to the OpenDiablo2 app
 func (eap *AudioProvider) BindApp(app d2interface.App) error {
 	if eap.app != nil {

@@ -3,9 +3,10 @@ package d2script
 import (
 	"errors"
 	"fmt"
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2interface"
 	"io/ioutil"
 	"path/filepath"
+
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2interface"
 
 	"github.com/robertkrimen/otto"
 	_ "github.com/robertkrimen/otto/underscore" // This causes the runtime to support underscore.js
@@ -18,6 +19,12 @@ type ScriptEngine struct {
 	isEvalAllowed bool
 }
 
+// Name of the component
+func (s *ScriptEngine) Name() string {
+	return "script_engine"
+}
+
+// BindApp binds the renderer to the App instance
 func (s *ScriptEngine) BindApp(app d2interface.App) error {
 	if s.app != nil {
 		return errors.New("script engine already bound to an app instance")

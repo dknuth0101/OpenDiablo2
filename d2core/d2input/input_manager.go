@@ -2,14 +2,14 @@ package d2input
 
 import (
 	"errors"
-  "sort"
-  
+	"sort"
+
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2enum"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2interface"
 )
 
 type inputManager struct {
-	app d2interface.App
+	app          d2interface.App
 	inputService d2interface.InputService
 	cursorX      int
 	cursorY      int
@@ -18,6 +18,11 @@ type inputManager struct {
 	keyMod    d2enum.KeyMod
 
 	entries handlerEntryList
+}
+
+// Name returns the name of the component
+func (im *inputManager) Name() string {
+	return "input_manager"
 }
 
 // BindApp binds to an app instance

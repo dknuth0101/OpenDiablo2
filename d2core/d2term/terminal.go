@@ -60,7 +60,7 @@ type termActionEntry struct {
 }
 
 type terminal struct {
-	app d2interface.App
+	app           d2interface.App
 	outputHistory []termHistoryEntry
 	outputIndex   int
 
@@ -79,6 +79,11 @@ type terminal struct {
 	errorColor   color.RGBA
 
 	actions map[string]termActionEntry
+}
+
+// Name of the component
+func (s *terminal) Name() string {
+	return "terminal"
 }
 
 // BindApp binds to an app instance

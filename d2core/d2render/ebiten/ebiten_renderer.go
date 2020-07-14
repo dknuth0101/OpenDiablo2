@@ -27,8 +27,13 @@ func CreateRenderer() (*Renderer, error) {
 
 // Renderer renders the game
 type Renderer struct {
-	app d2interface.App
+	app            d2interface.App
 	renderCallback func(surface d2interface.Surface) error
+}
+
+// Name of the component
+func (s *Renderer) Name() string {
+	return "renderer"
 }
 
 // BindApp binds the renderer to the App instance
@@ -60,7 +65,6 @@ func (r *Renderer) Update(screen *ebiten.Image) error {
 func (r *Renderer) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return 800, 600
 }
-
 
 // GetRendererName returns the name of the renderer
 func (*Renderer) GetRendererName() string {

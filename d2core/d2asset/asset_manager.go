@@ -2,8 +2,9 @@ package d2asset
 
 import (
 	"errors"
-	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2config"
 	"log"
+
+	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2config"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2enum"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2cof"
@@ -13,13 +14,17 @@ import (
 )
 
 type assetManager struct {
-	app 					d2interface.App
+	app                     d2interface.App
 	archiveManager          d2interface.ArchiveManager
 	archivedFileManager     d2interface.ArchivedFileManager
 	paletteManager          d2interface.ArchivedPaletteManager
 	paletteTransformManager *paletteTransformManager
 	animationManager        d2interface.ArchivedAnimationManager
 	fontManager             d2interface.ArchivedFontManager
+}
+
+func (am *assetManager) Name() string {
+	return "asset_manager"
 }
 
 // BindApp binds to the OpenDiablo2 app
@@ -45,13 +50,13 @@ func (am *assetManager) Initialize() error {
 	}
 
 	var (
-		config                  = d2config.Config
-		archiveManager          = createArchiveManager(config)
-		archivedFileManager     = createFileManager(config, archiveManager)
-		paletteManager          = createPaletteManager()
+		config              = d2config.Config
+		archiveManager      = createArchiveManager(config)
+		archivedFileManager = createFileManager(config, archiveManager)
+		paletteManager      = createPaletteManager()
 		// paletteTransformManager = createPaletteTransformManager()
-		animationManager        = createAnimationManager(renderer)
-		fontManager             = createFontManager()
+		animationManager = createAnimationManager(renderer)
+		fontManager      = createFontManager()
 	)
 
 	if err := singleton.Bind(archiveManager); err != nil {
