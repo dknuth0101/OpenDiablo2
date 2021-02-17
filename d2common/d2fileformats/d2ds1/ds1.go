@@ -1,6 +1,8 @@
 package d2ds1
 
 import (
+	"fmt"
+
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2datautils"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2enum"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2math"
@@ -61,7 +63,8 @@ type DS1 struct {
 	npcIndexes       []int
 }
 
-// Files returns a list of file path strings. These correspond to DT1 paths that this DS1 will use.
+// Files returns a list of file path strings.
+// These correspond to DT1 paths that this DS1 will use.
 func (ds1 *DS1) Files() []string {
 	return ds1.files
 }
@@ -76,13 +79,16 @@ func (ds1 *DS1) AddFile(file string) {
 }
 
 // RemoveFile removes a file from the files slice
-func (ds1 *DS1) RemoveFile(file string) {
+func (ds1 *DS1) RemoveFile(file string) error {
 	for idx := range ds1.files {
 		if ds1.files[idx] == file {
 			ds1.files = append(ds1.files[:idx], ds1.files[idx+1:]...)
-			break
+
+			return nil
 		}
 	}
+
+	return fmt.Errorf("file %s not found", file)
 }
 
 // Objects returns the slice of objects found in this ds1
@@ -209,6 +215,8 @@ func (ds1 *DS1) SetWidth(w int) {
 			ds1.tiles[rowIdx] = append(ds1.tiles[rowIdx], newTiles...)
 		}
 	}
+
+	ds1.width = int32(w)
 }
 
 // Height returns te ds1's height
@@ -348,7 +356,7 @@ func (ds1 *DS1) update() {
 	ds1.enforceAllTileLayersMatch()
 	ds1.updateLayerCounts()
 
-	ds1.SetSize(len(ds1.tiles[0]), len(ds1.tiles))
+	//ds1.SetSize(len(ds1.tiles[0]), len(ds1.tiles))
 
 	ds1.dirty = false
 }
