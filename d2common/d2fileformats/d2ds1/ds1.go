@@ -254,6 +254,8 @@ func (ds1 *DS1) SetHeight(h int) {
 				newRows[rowIdx][colIdx] = makeDefaultTile()
 			}
 		}
+
+		ds1.tiles = append(ds1.tiles, newRows...)
 	}
 
 	// if the ds1 has too many rows
@@ -264,8 +266,6 @@ func (ds1 *DS1) SetHeight(h int) {
 		// remove the extras
 		ds1.tiles = ds1.tiles[:h]
 	}
-
-	ds1.height = int32(h)
 }
 
 // Size returns te ds1's size (width, height)
@@ -277,10 +277,11 @@ func (ds1 *DS1) Size() (w, h int) {
 	return int(ds1.width), int(ds1.height)
 }
 
-// SetSize sets the ds1's size (width,height)
-func (ds1 *DS1) SetSize(w, h int) {
+// setSize force sets the ds1's size (width,height)
+func (ds1 *DS1) setSize(w, h int) {
 	ds1.SetWidth(w)
 	ds1.SetHeight(h)
+	ds1.width, ds1.height = int32(w), int32(h)
 }
 
 // Act returns the ds1's act
@@ -358,10 +359,7 @@ func (ds1 *DS1) update() {
 	ds1.enforceAllTileLayersMatch()
 	ds1.updateLayerCounts()
 
-	// this crashes tests, because wraps function:
-	//   swtSize -> set width -> update
-	//   ....
-	// ds1.SetSize(len(ds1.tiles[0]), len(ds1.tiles))
+	ds1.setSize(len(ds1.tiles[0]), len(ds1.tiles))
 
 	ds1.dirty = false
 }

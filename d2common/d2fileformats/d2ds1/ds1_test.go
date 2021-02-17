@@ -1,6 +1,8 @@
 package d2ds1
 
 import (
+	"fmt"
+
 	"testing"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2enum"
@@ -292,13 +294,13 @@ func TestDS1_SetHeight(t *testing.T) {
 	ds1.SetHeight(int(newHeight))
 
 	if newHeight != ds1.height {
+		fmt.Println(newHeight, ds1.height)
 		t.Fatal("unexpected heigth after set")
 	}
 
-	// crashes test: need to check SetHeigth
-	/*if err := testIfRestorable(ds1); err != nil {
+	if err := testIfRestorable(ds1); err != nil {
 		t.Errorf("unable to restore: %v", err)
-	}*/
+	}
 }
 
 func TestDS1_Act(t *testing.T) {
