@@ -53,6 +53,22 @@ func testIfRestorable(ds1 *DS1) error {
 	return err
 }
 
+func TestDS1_Marshal(t *testing.T) {
+	a := exampleDS1()
+
+	bytes := a.Marshal()
+
+	b, err := LoadDS1(bytes)
+	if err != nil {
+		t.Error("could not load new ds1 from marshalled ds1 data")
+		return
+	}
+
+	if b.width != a.width {
+		t.Error("new ds1 does not match original")
+	}
+}
+
 func TestDS1_Files(t *testing.T) {
 	ds1 := exampleDS1()
 
@@ -261,13 +277,22 @@ func TestDS1_Height(t *testing.T) {
 	}
 }
 
-//
-//
-//
-//
-//
-//
-//
+func TestDS1_SetHeight(t *testing.T) {
+	ds1 := exampleDS1()
+
+	var newHeight int32 = 5
+
+	ds1.SetHeight(int(newHeight))
+
+	if newHeight != ds1.height {
+		t.Fatal("unexpected heigth after set")
+	}
+
+	// crashes test: need to check SetHeigth
+	/*if err := testIfRestorable(ds1); err != nil {
+		t.Errorf("unable to restore: %v", err)
+	}*/
+}
 
 func TestDS1_Act(t *testing.T) {
 	ds1 := exampleDS1()
@@ -275,25 +300,57 @@ func TestDS1_Act(t *testing.T) {
 	if ds1.Act() != int(ds1.act) {
 		t.Error("unexpected value in example ds1")
 	}
+}
+
+func TestDS1_SetAct(t *testing.T) {
+	ds1 := exampleDS1()
+
+	ds1.SetAct(-1)
+
+	if ds1.Act() < 0 {
+		t.Error("act cannot be less than 0")
+	}
+
+	nice := 69420
+
+	ds1.SetAct(nice)
+
+	if int(ds1.act) != nice {
+		t.Error("unexpected value for act")
+	}
 
 	if err := testIfRestorable(ds1); err != nil {
 		t.Errorf("unable to restore: %v", err)
 	}
 }
 
-func TestDS1_Marshal(t *testing.T) {
-	a := exampleDS1()
+func TestDS1_SubstitutionType(t *testing.T) {
+	ds1 := exampleDS1()
 
-	bytes := a.Marshal()
+	st := ds1.substitutionType
 
-	b, err := LoadDS1(bytes)
-	if err != nil {
-		t.Error("could not load new ds1 from marshalled ds1 data")
-		return
+	if int(st) != ds1.SubstitutionType() {
+		t.Fatal("unexpected substitution type returned")
 	}
+}
 
-	if b.width != a.width {
-		t.Error("new ds1 does not match original")
+func TestDS1_SetSubstitutionType(t *testing.T) {
+	ds1 := exampleDS1()
+
+	newST := 5
+
+	ds1.SetSubstitutionType(newST)
+
+	if ds1.substitutionType != int32(newST) {
+		t.Fatal("unexpected substitutionType was set")
+	}
+}
+
+func TestDS1_NumberOfWalls(t *testing.T) {
+	ds1 := exampleDS1()
+
+	if ds1.NumberOfWallLayers() != int(ds1.numberOfWallLayers) {
+		t.Error("unexpected number of wall layers")
 	}
 }
 
@@ -321,64 +378,33 @@ func TestDS1_NumberOfSubstitutionLayers(t *testing.T) {
 	}
 }
 
-func TestDS1_NumberOfWalls(t *testing.T) {
+func TestDS1_SubstitutionGroups(t *testing.T) {
 	ds1 := exampleDS1()
 
-	if ds1.NumberOfWallLayers() != int(ds1.numberOfWallLayers) {
-		t.Error("unexpected number of wall layers")
+	sg := ds1.SubstitutionGroups()
+
+	for i := 0; i < len(ds1.substitutionGroups); i++ {
+		if sg[i] != ds1.substitutionGroups[i] {
+			t.Fatal("unexpected substitution group returned")
+		}
 	}
-}
-
-func TestDS1_SetAct(t *testing.T) {
-	ds1 := exampleDS1()
-
-	ds1.SetAct(-1)
-
-	if ds1.Act() < 0 {
-		t.Error("act cannot be less than 0")
-	}
-
-	nice := 69420
-
-	ds1.SetAct(nice)
-
-	if int(ds1.act) != nice {
-		t.Error("unexpected value for act")
-	}
-
-	if err := testIfRestorable(ds1); err != nil {
-		t.Errorf("unable to restore: %v", err)
-	}
-}
-
-func TestDS1_SetHeight(t *testing.T) {
-	//ds1 := exampleDS1()
-}
-
-func TestDS1_SetSize(t *testing.T) {
-	//ds1 := exampleDS1()
 }
 
 func TestDS1_SetSubstitutionGroups(t *testing.T) {
-	//ds1 := exampleDS1()
-}
+	ds1 := exampleDS1()
 
-func TestDS1_SetSubstitutionType(t *testing.T) {
-	//ds1 := exampleDS1()
-}
+	newGroup := []SubstitutionGroup{
+		{
+			TileX:         20,
+			TileY:         12,
+			WidthInTiles:  212,
+			HeightInTiles: 334,
+			Unknown:       1024,
+		},
+	}
 
-func TestDS1_Size(t *testing.T) {
-	//ds1 := exampleDS1()
-}
-
-func TestDS1_SubstitutionGroups(t *testing.T) {
-	//ds1 := exampleDS1()
-}
-
-func TestDS1_SubstitutionType(t *testing.T) {
-	//ds1 := exampleDS1()
-}
-
-func TestLoadDS1(t *testing.T) {
-	//ds1 := exampleDS1()
+	ds1.SetSubstitutionGroups(newGroup)
+	if ds1.substitutionGroups[0] != newGroup[0] {
+		t.Fatal("unexpected substitution group added")
+	}
 }

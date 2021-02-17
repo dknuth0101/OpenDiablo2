@@ -264,6 +264,8 @@ func (ds1 *DS1) SetHeight(h int) {
 		// remove the extras
 		ds1.tiles = ds1.tiles[:h]
 	}
+
+	ds1.height = int32(h)
 }
 
 // Size returns te ds1's size (width, height)
