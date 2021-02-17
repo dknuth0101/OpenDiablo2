@@ -31,7 +31,7 @@ type Stamp struct {
 
 // Size returns the size of the stamp in tiles.
 func (mr *Stamp) Size() d2geom.Size {
-	return d2geom.Size{Width: int(mr.ds1.Width()), Height: int(mr.ds1.Height())}
+	return d2geom.Size{Width: mr.ds1.Width(), Height: mr.ds1.Height()}
 }
 
 // LevelPreset returns the level preset ID.

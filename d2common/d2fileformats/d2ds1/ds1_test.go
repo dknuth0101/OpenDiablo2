@@ -47,6 +47,7 @@ func exampleDS1() *DS1 {
 
 func testIfRestorable(ds1 *DS1) error {
 	var err error
+
 	data := ds1.Marshal()
 	_, err = LoadDS1(data)
 
@@ -60,7 +61,7 @@ func TestDS1_Marshal(t *testing.T) {
 
 	b, err := LoadDS1(bytes)
 	if err != nil {
-		t.Error("could not load new ds1 from marshalled ds1 data")
+		t.Error("could not load new ds1 from marshaled ds1 data")
 		return
 	}
 
@@ -104,7 +105,10 @@ func TestDS1_RemoveFile(t *testing.T) {
 
 	numBefore := len(ds1.files)
 
-	ds1.RemoveFile("nonexistant file")
+	err := ds1.RemoveFile("nonexistant file")
+	if err == nil {
+		t.Fatal("file 'nonexistant file' doesn't exist but ds1.RemoveFile doesn't return error")
+	}
 
 	if len(ds1.files) != numBefore {
 		t.Error("file removed when it should not have been")
@@ -118,7 +122,10 @@ func TestDS1_RemoveFile(t *testing.T) {
 		t.Error("file not added when it should have been")
 	}
 
-	ds1.RemoveFile(filename)
+	err = ds1.RemoveFile(filename)
+	if err != nil {
+		t.Error(err)
+	}
 
 	if len(ds1.files) != numBefore {
 		t.Error("file not removed when it should have been")
@@ -404,6 +411,7 @@ func TestDS1_SetSubstitutionGroups(t *testing.T) {
 	}
 
 	ds1.SetSubstitutionGroups(newGroup)
+
 	if ds1.substitutionGroups[0] != newGroup[0] {
 		t.Fatal("unexpected substitution group added")
 	}

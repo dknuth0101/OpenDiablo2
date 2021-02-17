@@ -358,7 +358,10 @@ func (ds1 *DS1) update() {
 	ds1.enforceAllTileLayersMatch()
 	ds1.updateLayerCounts()
 
-	//ds1.SetSize(len(ds1.tiles[0]), len(ds1.tiles))
+	// this crashes tests, because wraps function:
+	//   swtSize -> set width -> update
+	//   ....
+	// ds1.SetSize(len(ds1.tiles[0]), len(ds1.tiles))
 
 	ds1.dirty = false
 }
