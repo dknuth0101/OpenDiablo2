@@ -47,6 +47,7 @@ func exampleDS1() *DS1 {
 	}
 }
 
+// checks, if DS1 structure could be marshaled and unmarshaled
 func testIfRestorable(ds1 *DS1) error {
 	var err error
 
@@ -211,7 +212,45 @@ func TestDS1_Tiles(t *testing.T) {
 }
 
 func TestDS1_SetTiles(t *testing.T) {
-	//ds1 := exampleDS1()
+	ds1 := exampleDS1()
+
+	exampleTile1 := Tile{
+		Floors: []FloorShadow{
+			{0, 0, 2, 3, 4, 55, 33, true, 999},
+		},
+		Shadows: []FloorShadow{
+			{2, 4, 5, 33, 6, 7, 0, false, 1024},
+		},
+	}
+
+	exampleTile2 := Tile{
+		Walls: []Wall{
+			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
+		},
+		Shadows: []FloorShadow{
+			{2, 4, 5, 33, 6, 7, 0, false, 1024},
+		},
+	}
+
+	tiles := [][]Tile{{exampleTile1, exampleTile2}}
+
+	ds1.SetTiles(tiles)
+
+	if ds1.tiles[0][0].Floors[0] != exampleTile1.Floors[0] {
+		t.Fatal("unexpected tile was set")
+	}
+
+	if len(ds1.tiles[0][0].Walls) != len(exampleTile1.Walls) {
+		t.Fatal("unexpected tile was set")
+	}
+
+	if ds1.tiles[0][1].Walls[0] != exampleTile2.Walls[0] {
+		t.Fatal("unexpected tile was set")
+	}
+
+	if len(ds1.tiles[0][1].Walls) != len(exampleTile2.Walls) {
+		t.Fatal("unexpected tile was set")
+	}
 }
 
 func TestDS1_Tile(t *testing.T) {
@@ -225,7 +264,34 @@ func TestDS1_Tile(t *testing.T) {
 }
 
 func TestDS1_SetTile(t *testing.T) {
-	//ds1 := exampleDS1()
+	ds1 := exampleDS1()
+
+	exampleTile := Tile{
+		Floors: []FloorShadow{
+			{5, 8, 9, 4, 3, 4, 2, true, 1024},
+			{8, 22, 7, 9, 6, 3, 0, false, 1024},
+		},
+		Walls: []Wall{
+			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
+		},
+		Shadows: []FloorShadow{
+			{2, 44, 99, 2, 4, 3, 2, true, 933},
+		},
+	}
+
+	ds1.SetTile(0, 0, &exampleTile)
+
+	if ds1.tiles[0][0].Floors[0] != exampleTile.Floors[0] {
+		t.Fatal("unexpected tile was set")
+	}
+
+	if len(ds1.tiles[0][0].Walls) != len(exampleTile.Walls) {
+		t.Fatal("unexpected tile was set")
+	}
+
+	if err := testIfRestorable(ds1); err != nil {
+		t.Errorf("unable to restore: %v", err)
+	}
 }
 
 func TestDS1_Version(t *testing.T) {
