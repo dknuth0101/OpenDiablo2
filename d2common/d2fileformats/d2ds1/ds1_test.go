@@ -227,26 +227,32 @@ func TestDS1_SetTiles(t *testing.T) {
 	ds1 := exampleDS1()
 
 	exampleTile1 := Tile{
-		Walls: []Wall{
-			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
-		},
 		Floors: []floorShadow{
 			{0, 0, 2, 3, 4, 55, 33, true, 999},
 		},
+		Walls: []Wall{
+			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
+		},
 		Shadows: []floorShadow{
 			{2, 4, 5, 33, 6, 7, 0, false, 1024},
+		},
+		Substitutions: []Substitution{
+			{1024},
 		},
 	}
 
 	exampleTile2 := Tile{
-		Walls: []Wall{
-			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
-		},
 		Floors: []floorShadow{
 			{0, 0, 2, 3, 4, 55, 33, true, 999},
 		},
+		Walls: []Wall{
+			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
+		},
 		Shadows: []floorShadow{
 			{2, 4, 5, 33, 6, 7, 0, false, 1024},
+		},
+		Substitutions: []Substitution{
+			{1234},
 		},
 	}
 
@@ -254,25 +260,24 @@ func TestDS1_SetTiles(t *testing.T) {
 
 	ds1.SetTiles(tiles)
 
-	test := func(ds1 *DS1) {
-		if ds1.tiles[0][0].Floors[0] != exampleTile1.Floors[0] {
-			t.Fatal("unexpected tile was set")
-		}
-
-		if len(ds1.tiles[0][0].Walls) != len(exampleTile1.Walls) {
-			t.Fatal("unexpected tile was set")
-		}
-
-		if ds1.tiles[0][1].Walls[0] != exampleTile2.Walls[0] {
-			t.Fatal("unexpected tile was set")
-		}
-
-		if len(ds1.tiles[0][1].Walls) != len(exampleTile2.Walls) {
-			t.Fatal("unexpected tile was set")
-		}
+	_ = fmt.Println
+	if ds1.tiles[0][0].Floors[0] != exampleTile1.Floors[0] {
+		t.Fatal("unexpected tile was set")
 	}
 
-	if err := testIfRestorable(ds1, test); err != nil {
+	if len(ds1.tiles[0][0].Walls) != len(exampleTile1.Walls) {
+		t.Fatal("unexpected tile was set")
+	}
+
+	if ds1.tiles[0][0].Walls[0] != exampleTile2.Walls[0] {
+		t.Fatal("unexpected tile was set")
+	}
+
+	if len(ds1.tiles[0][0].Walls) != len(exampleTile2.Walls) {
+		t.Fatal("unexpected tile was set")
+	}
+
+	if err := testIfRestorable(ds1, func(_ *DS1) {}); err != nil {
 		t.Errorf("unable to restore: %v", err)
 	}
 }
@@ -312,8 +317,6 @@ func TestDS1_SetTile(t *testing.T) {
 			t.Fatal("c1.unexpected tile was set")
 		}
 
-		fmt.Println(ds1.tiles[0][0].Walls[0])
-		fmt.Println(exampleTile.Walls[0])
 		if ds1.tiles[0][0].Walls[0].Zero != exampleTile.Walls[0].Zero {
 			t.Fatal("c1.unexpected tile was set")
 		}
@@ -399,7 +402,6 @@ func TestDS1_SetHeight(t *testing.T) {
 
 	test := func(ds1 *DS1) {
 		if newHeight != ds1.height {
-			fmt.Println(newHeight, ds1.height)
 			t.Fatal("unexpected heigth after set")
 		}
 	}

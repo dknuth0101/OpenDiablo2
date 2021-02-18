@@ -135,7 +135,9 @@ func (ds1 *DS1) SetTiles(tiles [][]Tile) {
 	}
 
 	ds1.tiles = tiles
+	ds1.layerStreamTypes = ds1.setupStreamLayerTypes()
 	ds1.dirty = true
+	ds1.update()
 }
 
 // Tile returns the tile at the given x,y tile coordinate (nil if x,y is out of bounds)
@@ -920,10 +922,11 @@ func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
 	for lIdx := range ds1.layerStreamTypes {
 		layerStreamType := ds1.layerStreamTypes[lIdx]
 
-		for y := 0; y < int(ds1.height); y++ {
-			for x := 0; x < int(ds1.width); x++ {
+		for x := 0; x < int(ds1.height); x++ {
+			for y := 0; y < int(ds1.height); y++ {
 				dw := uint32(0)
 
+				fmt.Println(y)
 				switch layerStreamType {
 				case d2enum.LayerStreamWall1, d2enum.LayerStreamWall2, d2enum.LayerStreamWall3, d2enum.LayerStreamWall4:
 					wallIndex := int(layerStreamType) - int(d2enum.LayerStreamWall1)
