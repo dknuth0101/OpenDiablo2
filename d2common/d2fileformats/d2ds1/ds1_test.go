@@ -1,8 +1,6 @@
 package d2ds1
 
 import (
-	"fmt"
-
 	"testing"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2enum"
@@ -115,6 +113,7 @@ func TestDS1_RemoveFile(t *testing.T) {
 
 	test := func(ds1 *DS1) {
 		numBefore := len(ds1.files)
+
 		err := ds1.RemoveFile("nonexistant file")
 		if err == nil {
 			t.Fatal("file 'nonexistant file' doesn't exist but ds1.RemoveFile doesn't return error")
@@ -260,7 +259,6 @@ func TestDS1_SetTiles(t *testing.T) {
 
 	ds1.SetTiles(tiles)
 
-	_ = fmt.Println
 	if ds1.tiles[0][0].Floors[0] != exampleTile1.Floors[0] {
 		t.Fatal("unexpected tile was set")
 	}

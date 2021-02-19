@@ -922,11 +922,10 @@ func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
 	for lIdx := range ds1.layerStreamTypes {
 		layerStreamType := ds1.layerStreamTypes[lIdx]
 
-		for x := 0; x < int(ds1.height); x++ {
-			for y := 0; y < int(ds1.height); y++ {
+		for y := 0; y < int(ds1.height); y++ {
+			for x := 0; x < int(ds1.width); x++ {
 				dw := uint32(0)
 
-				fmt.Println(y)
 				switch layerStreamType {
 				case d2enum.LayerStreamWall1, d2enum.LayerStreamWall2, d2enum.LayerStreamWall3, d2enum.LayerStreamWall4:
 					wallIndex := int(layerStreamType) - int(d2enum.LayerStreamWall1)
