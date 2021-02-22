@@ -485,6 +485,47 @@ func TestDS1_NumberOfWalls(t *testing.T) {
 	}
 }
 
+func TestDS1_SetNumberOfWalls(t *testing.T) {
+	ds1 := exampleDS1()
+
+	newNumber := int32(2)
+
+	ds1.SetNumberOfWallLayers(newNumber)
+
+	test := func(ds1 *DS1) {
+		if len(ds1.tiles[0][0].Walls) != int(newNumber) {
+			t.Fatal("unexpected walls length set")
+		}
+
+		if ds1.NumberOfWallLayers() != int(newNumber) {
+			t.Fatal("unexpected walls length set")
+		}
+	}
+
+	if err := testIfRestorable(ds1, test); err != nil {
+		t.Errorf("unable to restore: %v", err)
+	}
+
+	newNumber = 1
+
+	ds1.SetNumberOfWallLayers(newNumber)
+
+	test = func(ds1 *DS1) {
+		if len(ds1.tiles[0][0].Walls) != int(newNumber) {
+			t.Fatal("unexpected walls length set")
+		}
+
+		if ds1.NumberOfWallLayers() != int(newNumber) {
+			t.Fatal("unexpected walls length set")
+		}
+	}
+
+	if err := testIfRestorable(ds1, test); err != nil {
+		t.Errorf("unable to restore: %v", err)
+	}
+
+}
+
 func TestDS1_NumberOfFloors(t *testing.T) {
 	ds1 := exampleDS1()
 

@@ -322,6 +322,41 @@ func (ds1 *DS1) NumberOfWallLayers() int {
 	return int(ds1.numberOfWallLayers)
 }
 
+func (ds1 *DS1) SetNumberOfWallLayers(n int32) {
+	// if n = number of walls, do nothing
+	if n == ds1.numberOfWallLayers {
+		return
+	}
+
+	if n > ds1.numberOfWallLayers {
+		// calculate, how much walls is missing
+		missingWalls := n - ds1.numberOfWallLayers
+
+		for y := range ds1.tiles {
+			for x := range ds1.tiles[y] {
+				for v := int32(0); v < missingWalls; v++ {
+					ds1.tiles[y][x].Walls = append(ds1.tiles[y][x].Walls, Wall{})
+				}
+			}
+		}
+	}
+
+	if n < ds1.numberOfWallLayers {
+		for y := range ds1.tiles {
+			for x := range ds1.tiles {
+				newWalls := make([]Wall, n)
+				for v := int32(0); v < n; v++ {
+					newWalls[v] = ds1.tiles[y][x].Walls[v]
+				}
+
+				ds1.tiles[y][x].Walls = newWalls
+			}
+		}
+	}
+
+	ds1.numberOfWallLayers = n
+}
+
 // NumberOfFloorLayers returns the number of floor layers per tile
 func (ds1 *DS1) NumberOfFloorLayers() int {
 	if ds1.dirty {
