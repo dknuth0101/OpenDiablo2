@@ -698,28 +698,28 @@ func (ds1 *DS1) loadNPCs(br *d2datautils.StreamReader) error {
 	var err error
 
 	if ds1.version < v14 {
-		return err
+		return nil
 	}
 
 	numberOfNpcs, err := br.ReadInt32()
 	if err != nil {
-		return err
+		return fmt.Errorf("reading number of npcs: %v", err)
 	}
 
 	for npcIdx := 0; npcIdx < int(numberOfNpcs); npcIdx++ {
 		numPaths, err := br.ReadInt32() // nolint:govet // I want to re-use this error variable
 		if err != nil {
-			return err
+			return fmt.Errorf("reading number of paths for npc %d: %v", npcIdx, err)
 		}
 
 		npcX, err := br.ReadInt32()
 		if err != nil {
-			return err
+			return fmt.Errorf("reading X pos for NPC %d: %v", npcIdx, err)
 		}
 
 		npcY, err := br.ReadInt32()
 		if err != nil {
-			return err
+			return fmt.Errorf("reading Y pos for NPC %d: %v", npcIdx, err)
 		}
 
 		objIdx := -1
@@ -736,7 +736,7 @@ func (ds1 *DS1) loadNPCs(br *d2datautils.StreamReader) error {
 		if objIdx > -1 {
 			err = ds1.loadNpcPaths(br, objIdx, int(numPaths))
 			if err != nil {
-				return err
+				return fmt.Errorf("loading paths for NPC %d: %v", npcIdx, err)
 			}
 		} else {
 			if ds1.version >= v15 {
@@ -751,8 +751,6 @@ func (ds1 *DS1) loadNPCs(br *d2datautils.StreamReader) error {
 }
 
 func (ds1 *DS1) loadNpcPaths(br *d2datautils.StreamReader, objIdx, numPaths int) error {
-	var err error
-
 	if ds1.objects[objIdx].Paths == nil {
 		ds1.objects[objIdx].Paths = make([]d2path.Path, numPaths)
 	}
@@ -762,12 +760,12 @@ func (ds1 *DS1) loadNpcPaths(br *d2datautils.StreamReader, objIdx, numPaths int)
 
 		px, err := br.ReadInt32() //nolint:govet // i want to re-use the err variable...
 		if err != nil {
-			return err
+			return fmt.Errorf("reading X point for path %d: %v", pathIdx, err)
 		}
 
 		py, err := br.ReadInt32() //nolint:govet // i want to re-use the err variable...
 		if err != nil {
-			return err
+			return fmt.Errorf("reading Y point for path %d: %v", pathIdx, err)
 		}
 
 		newPath.Position = d2vector.NewPosition(float64(px), float64(py))
@@ -775,7 +773,7 @@ func (ds1 *DS1) loadNpcPaths(br *d2datautils.StreamReader, objIdx, numPaths int)
 		if ds1.version >= v15 {
 			action, err := br.ReadInt32()
 			if err != nil {
-				return err
+				return fmt.Errorf("reading action for path %d: %v", pathIdx, err)
 			}
 
 			newPath.Action = int(action)
@@ -784,7 +782,7 @@ func (ds1 *DS1) loadNpcPaths(br *d2datautils.StreamReader, objIdx, numPaths int)
 		ds1.objects[objIdx].Paths[pathIdx] = newPath
 	}
 
-	return err
+	return nil
 }
 
 func (ds1 *DS1) loadLayerStreams(br *d2datautils.StreamReader, layerStreamTypes []d2enum.LayerStreamType) error {
