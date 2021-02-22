@@ -327,7 +327,6 @@ func (ds1 *DS1) SetNumberOfWallLayers(n int32) {
 	for y := range ds1.tiles {
 		for x := range ds1.tiles[y] {
 			for v := int32(0); v < n-int32(len(ds1.tiles[y][x].Walls)); v++ {
-				fmt.Printf("\ntile %d, %d, adding %d wall", y, x, v)
 				ds1.tiles[y][x].Walls = append(ds1.tiles[y][x].Walls, Wall{})
 			}
 		}
