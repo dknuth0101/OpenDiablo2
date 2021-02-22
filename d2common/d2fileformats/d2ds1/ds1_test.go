@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2enum"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2path"
 )
 
 func exampleDS1() *DS1 {
@@ -11,7 +12,7 @@ func exampleDS1() *DS1 {
 		files: []string{"a.dt1", "b.dt1"},
 		objects: []Object{
 			{0, 0, 0, 0, 0, nil},
-			{0, 1, 0, 0, 0, nil},
+			{0, 1, 0, 0, 0, []d2path.Path{{}}},
 			{0, 2, 0, 0, 0, nil},
 			{0, 3, 0, 0, 0, nil},
 		},
@@ -21,13 +22,13 @@ func exampleDS1() *DS1 {
 					[]Floor{{}},
 					[]Wall{{}},
 					[]Shadow{{}},
-					[]Substitution{},
+					[]Substitution{{}},
 				},
 				Tile{
 					[]Floor{{}},
 					[]Wall{{}},
 					[]Shadow{{}},
-					[]Substitution{},
+					[]Substitution{{}},
 				},
 			},
 			{
@@ -35,13 +36,13 @@ func exampleDS1() *DS1 {
 					[]Floor{{}},
 					[]Wall{{}},
 					[]Shadow{{}},
-					[]Substitution{},
+					[]Substitution{{}},
 				},
 				Tile{
 					[]Floor{{}},
 					[]Wall{{}},
 					[]Shadow{{}},
-					[]Substitution{},
+					[]Substitution{{}},
 				},
 			},
 		},
@@ -54,7 +55,7 @@ func exampleDS1() *DS1 {
 		numberOfWallLayers:         1,
 		numberOfFloorLayers:        1,
 		numberOfShadowLayers:       1,
-		numberOfSubstitutionLayers: 0,
+		numberOfSubstitutionLayers: 1,
 		npcIndexes:                 []int{},
 	}
 }
@@ -632,6 +633,7 @@ func TestDS1_setupStreamLayerTypes(t *testing.T) {
 		d2enum.LayerStreamOrientation1,
 		d2enum.LayerStreamFloor1,
 		d2enum.LayerStreamShadow,
+		d2enum.LayerStreamSubstitute,
 	}
 
 	layerStreamTypes := ds1.setupStreamLayerTypes()
