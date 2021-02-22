@@ -163,6 +163,7 @@ func (ds1 *DS1) SetTile(x, y int, t *Tile) {
 
 	ds1.tiles[y][x] = *t
 	ds1.dirty = true
+	ds1.update()
 }
 
 // Version returns the ds1's version
@@ -430,8 +431,6 @@ func LoadDS1(fileData []byte) (*DS1, error) {
 		}
 	}
 
-	layerStreamTypes := ds1.setupStreamLayerTypes()
-
 	ds1.tiles = make([][]Tile, ds1.height)
 
 	for y := range ds1.tiles {
@@ -444,7 +443,7 @@ func LoadDS1(fileData []byte) (*DS1, error) {
 		}
 	}
 
-	err = ds1.loadLayerStreams(br, layerStreamTypes)
+	err = ds1.loadLayerStreams(br)
 	if err != nil {
 		return nil, fmt.Errorf("loading layer streams: %v", err)
 	}
@@ -785,16 +784,16 @@ func (ds1 *DS1) loadNpcPaths(br *d2datautils.StreamReader, objIdx, numPaths int)
 	return nil
 }
 
-func (ds1 *DS1) loadLayerStreams(br *d2datautils.StreamReader, layerStreamTypes []d2enum.LayerStreamType) error {
+func (ds1 *DS1) loadLayerStreams(br *d2datautils.StreamReader) error {
 	var dirLookup = []int32{
 		0x00, 0x01, 0x02, 0x01, 0x02, 0x03, 0x03, 0x05, 0x05, 0x06,
 		0x06, 0x07, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
 		0x0F, 0x10, 0x11, 0x12, 0x14,
 	}
 
-	for lIdx := range layerStreamTypes {
-		layerStreamType := layerStreamTypes[lIdx]
+	layerStreamTypes := ds1.setupStreamLayerTypes()
 
+	for _, layerStreamType := range layerStreamTypes {
 		for y := 0; y < int(ds1.height); y++ {
 			for x := 0; x < int(ds1.width); x++ {
 				dw, err := br.ReadUInt32()
@@ -915,9 +914,7 @@ func (ds1 *DS1) Marshal() []byte {
 func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
 	layerStreamTypes := ds1.setupStreamLayerTypes()
 
-	for lIdx := range layerStreamTypes {
-		layerStreamType := layerStreamTypes[lIdx]
-
+	for _, layerStreamType := range layerStreamTypes {
 		for y := 0; y < int(ds1.height); y++ {
 			for x := 0; x < int(ds1.width); x++ {
 				dw := uint32(0)

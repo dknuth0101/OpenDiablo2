@@ -1,7 +1,7 @@
 package d2ds1
 
 import (
-	//"fmt"
+	"fmt"
 
 	"testing"
 
@@ -23,13 +23,13 @@ func exampleDS1() *DS1 {
 					[]Floor{{}},
 					[]Wall{{}},
 					[]Shadow{{}},
-					[]Substitution{{}},
+					[]Substitution{},
 				},
 				Tile{
 					[]Floor{{}},
 					[]Wall{{}},
 					[]Shadow{{}},
-					[]Substitution{{}},
+					[]Substitution{},
 				},
 			},
 			{
@@ -37,13 +37,13 @@ func exampleDS1() *DS1 {
 					[]Floor{{}},
 					[]Wall{{}},
 					[]Shadow{{}},
-					[]Substitution{{}},
+					[]Substitution{},
 				},
 				Tile{
 					[]Floor{{}},
 					[]Wall{{}},
 					[]Shadow{{}},
-					[]Substitution{{}},
+					[]Substitution{},
 				},
 			},
 		},
@@ -56,7 +56,7 @@ func exampleDS1() *DS1 {
 		numberOfWallLayers:         1,
 		numberOfFloorLayers:        1,
 		numberOfShadowLayers:       1,
-		numberOfSubstitutionLayers: 1,
+		numberOfSubstitutionLayers: 0,
 		npcIndexes:                 []int{},
 	}
 }
@@ -257,9 +257,6 @@ func TestDS1_SetTiles(t *testing.T) {
 		Shadows: []floorShadow{
 			{2, 4, 5, 33, 6, 7, 0, false, 1024},
 		},
-		Substitutions: []Substitution{
-			{1024},
-		},
 	}
 
 	exampleTile2 := Tile{
@@ -271,9 +268,6 @@ func TestDS1_SetTiles(t *testing.T) {
 		},
 		Shadows: []floorShadow{
 			{2, 4, 5, 33, 6, 7, 0, false, 1024},
-		},
-		Substitutions: []Substitution{
-			{1234},
 		},
 	}
 
@@ -297,9 +291,9 @@ func TestDS1_SetTiles(t *testing.T) {
 		t.Fatal("unexpected tile was set")
 	}
 
-	/*if err := testIfRestorable(ds1, func(_ *DS1) {}); err != nil {
+	if err := testIfRestorable(ds1, func(_ *DS1) {}); err != nil {
 		t.Errorf("unable to restore: %v", err)
-	}*/
+	}
 }
 
 func TestDS1_Tile(t *testing.T) {
@@ -325,9 +319,6 @@ func TestDS1_SetTile(t *testing.T) {
 		Shadows: []floorShadow{
 			{2, 44, 99, 2, 4, 3, 2, true, 933},
 		},
-		Substitutions: []Substitution{
-			{10244},
-		},
 	}
 
 	ds1.SetTile(0, 0, &exampleTile)
@@ -349,6 +340,7 @@ func TestDS1_SetTile(t *testing.T) {
 	}
 
 	if err := testIfRestorable(ds1, test); err != nil {
+		fmt.Println(len(ds1.objects))
 		t.Errorf("unable to restore: %v", err)
 	}
 }
@@ -559,7 +551,7 @@ func TestDS1_setupStreamLayerTypes(t *testing.T) {
 		d2enum.LayerStreamOrientation1,
 		d2enum.LayerStreamFloor1,
 		d2enum.LayerStreamShadow,
-		d2enum.LayerStreamSubstitute,
+		//d2enum.LayerStreamSubstitute,
 	}
 
 	layerStreamTypes := ds1.setupStreamLayerTypes()
