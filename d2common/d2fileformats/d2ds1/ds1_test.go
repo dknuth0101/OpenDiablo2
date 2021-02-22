@@ -66,6 +66,7 @@ func testIfRestorable(ds1 *DS1, test func(ds1 *DS1)) error {
 	var err error
 
 	data := ds1.Marshal()
+
 	newDS1, err := LoadDS1(data)
 	if err != nil {
 		return err
@@ -247,7 +248,7 @@ func TestDS1_SetTiles(t *testing.T) {
 
 	exampleTile1 := Tile{
 		Floors: []floorShadow{
-			{0, 0, 2, 3, 4, 55, 33, true, 999},
+			{8, 7, 2, 3, 4, 55, 33, true, 999},
 		},
 		Walls: []Wall{
 			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
@@ -259,7 +260,7 @@ func TestDS1_SetTiles(t *testing.T) {
 
 	exampleTile2 := Tile{
 		Floors: []floorShadow{
-			{0, 0, 2, 3, 4, 55, 33, true, 999},
+			{9, 9, 2, 3, 4, 55, 33, true, 999},
 		},
 		Walls: []Wall{
 			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
@@ -269,25 +270,25 @@ func TestDS1_SetTiles(t *testing.T) {
 		},
 	}
 
-	tiles := [][]Tile{{exampleTile1, exampleTile2}}
+	tiles := [][]Tile{{exampleTile1, exampleTile2}, {exampleTile2, exampleTile1}}
 
 	ds1.SetTiles(tiles)
 
 	test := func(ds1 *DS1) {
-		if ds1.tiles[0][0].Floors[0] != exampleTile1.Floors[0] {
-			t.Fatal("unexpected tile was set")
+		if ds1.tiles[0][0].Floors[0].Prop1 != exampleTile1.Floors[0].Prop1 {
+			t.Fatal("1,unexpected tile was set")
 		}
 
 		if len(ds1.tiles[0][0].Walls) != len(exampleTile1.Walls) {
-			t.Fatal("unexpected tile was set")
+			t.Fatal("2,unexpected tile was set")
 		}
 
-		if ds1.tiles[0][0].Walls[0] != exampleTile2.Walls[0] {
-			t.Fatal("unexpected tile was set")
+		if ds1.tiles[0][1].Walls[0].Style != exampleTile2.Walls[0].Style {
+			t.Fatal("3,unexpected tile was set")
 		}
 
 		if len(ds1.tiles[0][0].Walls) != len(exampleTile2.Walls) {
-			t.Fatal("unexpected tile was set")
+			t.Fatal("4,unexpected tile was set")
 		}
 	}
 
@@ -548,7 +549,6 @@ func TestDS1_setupStreamLayerTypes(t *testing.T) {
 		d2enum.LayerStreamOrientation1,
 		d2enum.LayerStreamFloor1,
 		d2enum.LayerStreamShadow,
-		//d2enum.LayerStreamSubstitute,
 	}
 
 	layerStreamTypes := ds1.setupStreamLayerTypes()

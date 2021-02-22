@@ -646,7 +646,7 @@ func (ds1 *DS1) loadSubstitutions(br *d2datautils.StreamReader) error {
 
 		newSub.Unknown, err = br.ReadInt32()
 		if err != nil {
-			return fmt.Errorf("reading substitution's %d unkonwn: %v", subIdx, err)
+			return fmt.Errorf("reading substitution's %d unknown: %v", subIdx, err)
 		}
 
 		ds1.substitutionGroups[subIdx] = newSub
