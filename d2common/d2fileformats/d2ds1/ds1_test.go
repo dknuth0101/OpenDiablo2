@@ -275,23 +275,25 @@ func TestDS1_SetTiles(t *testing.T) {
 
 	ds1.SetTiles(tiles)
 
-	if ds1.tiles[0][0].Floors[0] != exampleTile1.Floors[0] {
-		t.Fatal("unexpected tile was set")
+	test := func(ds1 *DS1) {
+		if ds1.tiles[0][0].Floors[0] != exampleTile1.Floors[0] {
+			t.Fatal("unexpected tile was set")
+		}
+
+		if len(ds1.tiles[0][0].Walls) != len(exampleTile1.Walls) {
+			t.Fatal("unexpected tile was set")
+		}
+
+		if ds1.tiles[0][0].Walls[0] != exampleTile2.Walls[0] {
+			t.Fatal("unexpected tile was set")
+		}
+
+		if len(ds1.tiles[0][0].Walls) != len(exampleTile2.Walls) {
+			t.Fatal("unexpected tile was set")
+		}
 	}
 
-	if len(ds1.tiles[0][0].Walls) != len(exampleTile1.Walls) {
-		t.Fatal("unexpected tile was set")
-	}
-
-	if ds1.tiles[0][0].Walls[0] != exampleTile2.Walls[0] {
-		t.Fatal("unexpected tile was set")
-	}
-
-	if len(ds1.tiles[0][0].Walls) != len(exampleTile2.Walls) {
-		t.Fatal("unexpected tile was set")
-	}
-
-	if err := testIfRestorable(ds1, func(_ *DS1) {}); err != nil {
+	if err := testIfRestorable(ds1, test); err != nil {
 		t.Errorf("unable to restore: %v", err)
 	}
 }
@@ -327,15 +329,15 @@ func TestDS1_SetTile(t *testing.T) {
 		//fmt.Printf("\n%T\n\n", ds1.tiles)
 		//fmt.Println(ds1)
 		if ds1.tiles[0][0].Floors[0].Prop1 != exampleTile.Floors[0].Prop1 {
-			t.Fatal("c1.unexpected tile was set")
+			t.Fatal("unexpected tile was set")
 		}
 
 		if ds1.tiles[0][0].Walls[0].Zero != exampleTile.Walls[0].Zero {
-			t.Fatal("c1.unexpected tile was set")
+			t.Fatal("unexpected tile was set")
 		}
 
 		if len(ds1.tiles[0][0].Walls) != len(exampleTile.Walls) {
-			t.Fatal("c2.unexpected tile was set")
+			t.Fatal("unexpected tile was set")
 		}
 	}
 
