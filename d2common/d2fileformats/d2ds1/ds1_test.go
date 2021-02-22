@@ -252,6 +252,7 @@ func TestDS1_SetTiles(t *testing.T) {
 		},
 		Walls: []Wall{
 			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
+			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
 		},
 		Shadows: []floorShadow{
 			{2, 4, 5, 33, 6, 7, 0, false, 1024},
@@ -261,6 +262,7 @@ func TestDS1_SetTiles(t *testing.T) {
 	exampleTile2 := Tile{
 		Floors: []floorShadow{
 			{9, 9, 2, 3, 4, 55, 33, true, 999},
+			{9, 8, 2, 3, 102, 55, 33, true, 999},
 		},
 		Walls: []Wall{
 			{2, 3, 4, 5, 3, 2, 3, 0, 33, 99},
@@ -287,7 +289,7 @@ func TestDS1_SetTiles(t *testing.T) {
 			t.Fatal("3,unexpected tile was set")
 		}
 
-		if len(ds1.tiles[0][0].Walls) != len(exampleTile2.Walls) {
+		if len(ds1.tiles[0][0].Walls) != len(exampleTile1.Walls) {
 			t.Fatal("4,unexpected tile was set")
 		}
 	}
@@ -316,6 +318,7 @@ func TestDS1_SetTile(t *testing.T) {
 		},
 		Walls: []Wall{
 			{2, 0, 4, 5, 3, 2, 3, 0, 33, 99},
+			{5, 8, 9, 4, 3, 0, 0, 124, 221, 12},
 		},
 		Shadows: []floorShadow{
 			{2, 44, 99, 2, 4, 3, 2, true, 933},
@@ -523,7 +526,6 @@ func TestDS1_SetNumberOfWalls(t *testing.T) {
 	if err := testIfRestorable(ds1, test); err != nil {
 		t.Errorf("unable to restore: %v", err)
 	}
-
 }
 
 func TestDS1_NumberOfFloors(t *testing.T) {
@@ -531,6 +533,46 @@ func TestDS1_NumberOfFloors(t *testing.T) {
 
 	if ds1.NumberOfFloorLayers() != int(ds1.numberOfFloorLayers) {
 		t.Error("unexpected number of floor layers")
+	}
+}
+
+func TestDS1_SetNumberOfFloors(t *testing.T) {
+	ds1 := exampleDS1()
+
+	newNumber := int32(2)
+
+	ds1.SetNumberOfFloorLayers(newNumber)
+
+	test := func(ds1 *DS1) {
+		if len(ds1.tiles[0][0].Floors) != int(newNumber) {
+			t.Fatal("unexpected floors length set")
+		}
+
+		if ds1.numberOfFloorLayers != newNumber {
+			t.Fatal("unexpected floors length set")
+		}
+	}
+
+	if err := testIfRestorable(ds1, test); err != nil {
+		t.Errorf("unable to restore: %v", err)
+	}
+
+	newNumber = 1
+
+	ds1.SetNumberOfFloorLayers(newNumber)
+
+	test = func(ds1 *DS1) {
+		if len(ds1.tiles[0][0].Floors) != int(newNumber) {
+			t.Fatal("unexpected floors length set")
+		}
+
+		if ds1.numberOfFloorLayers != newNumber {
+			t.Fatal("unexpected floors length set")
+		}
+	}
+
+	if err := testIfRestorable(ds1, test); err != nil {
+		t.Errorf("unable to restore: %v", err)
 	}
 }
 

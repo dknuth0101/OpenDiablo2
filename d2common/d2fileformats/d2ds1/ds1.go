@@ -282,8 +282,8 @@ func (ds1 *DS1) Size() (w, h int) {
 	return int(ds1.width), int(ds1.height)
 }
 
-// setSize force sets the ds1's size (width,height)
-func (ds1 *DS1) setSize(w, h int) {
+// SetSize force sets the ds1's size (width,height)
+func (ds1 *DS1) SetSize(w, h int) {
 	ds1.SetWidth(w)
 	ds1.SetHeight(h)
 	ds1.width, ds1.height = int32(w), int32(h)
@@ -322,35 +322,33 @@ func (ds1 *DS1) NumberOfWallLayers() int {
 	return int(ds1.numberOfWallLayers)
 }
 
+// SetNumberOfWallLayers sets new number of tiles' walls
 func (ds1 *DS1) SetNumberOfWallLayers(n int32) {
+	for y := range ds1.tiles {
+		for x := range ds1.tiles[y] {
+			for v := int32(0); v < n-int32(len(ds1.tiles[y][x].Walls)); v++ {
+				fmt.Printf("\ntile %d, %d, adding %d wall", y, x, v)
+				ds1.tiles[y][x].Walls = append(ds1.tiles[y][x].Walls, Wall{})
+			}
+		}
+	}
+
 	// if n = number of walls, do nothing
 	if n == ds1.numberOfWallLayers {
 		return
 	}
 
-	if n > ds1.numberOfWallLayers {
-		// calculate, how much walls is missing
-		missingWalls := n - ds1.numberOfWallLayers
+	ds1.dirty = true
+	defer ds1.update()
 
-		for y := range ds1.tiles {
-			for x := range ds1.tiles[y] {
-				for v := int32(0); v < missingWalls; v++ {
-					ds1.tiles[y][x].Walls = append(ds1.tiles[y][x].Walls, Wall{})
-				}
+	for y := range ds1.tiles {
+		for x := range ds1.tiles[y] {
+			newWalls := make([]Wall, n)
+			for v := int32(0); v < n; v++ {
+				newWalls[v] = ds1.tiles[y][x].Walls[v]
 			}
-		}
-	}
 
-	if n < ds1.numberOfWallLayers {
-		for y := range ds1.tiles {
-			for x := range ds1.tiles {
-				newWalls := make([]Wall, n)
-				for v := int32(0); v < n; v++ {
-					newWalls[v] = ds1.tiles[y][x].Walls[v]
-				}
-
-				ds1.tiles[y][x].Walls = newWalls
-			}
+			ds1.tiles[y][x].Walls = newWalls
 		}
 	}
 
@@ -364,6 +362,41 @@ func (ds1 *DS1) NumberOfFloorLayers() int {
 	}
 
 	return int(ds1.numberOfFloorLayers)
+}
+
+// SetNumberOfFloorLayers sets new number of tiles' floors
+func (ds1 *DS1) SetNumberOfFloorLayers(n int32) {
+	// calculate, how much walls is missing
+	missingFloors := n - ds1.numberOfFloorLayers
+
+	for y := range ds1.tiles {
+		for x := range ds1.tiles[y] {
+			for v := int32(0); v < missingFloors; v++ {
+				ds1.tiles[y][x].Floors = append(ds1.tiles[y][x].Floors, Floor{})
+			}
+		}
+	}
+
+	// if n = number of walls, do nothing
+	if n == ds1.numberOfFloorLayers {
+		return
+	}
+
+	ds1.dirty = true
+	defer ds1.update()
+
+	for y := range ds1.tiles {
+		for x := range ds1.tiles[y] {
+			newFloors := make([]Floor, n)
+			for v := int32(0); v < n; v++ {
+				newFloors[v] = ds1.tiles[y][x].Floors[v]
+			}
+
+			ds1.tiles[y][x].Floors = newFloors
+		}
+	}
+
+	ds1.numberOfFloorLayers = n
 }
 
 // NumberOfShadowLayers returns the number of shadow layers per tile
@@ -399,7 +432,18 @@ func (ds1 *DS1) update() {
 	ds1.enforceAllTileLayersMatch()
 	ds1.updateLayerCounts()
 
-	ds1.setSize(len(ds1.tiles[0]), len(ds1.tiles))
+	ds1.SetSize(len(ds1.tiles[0]), len(ds1.tiles))
+
+	maxWalls := ds1.numberOfWallLayers
+	for y := range ds1.tiles {
+		for x := range ds1.tiles[y] {
+			if len(ds1.tiles[y][x].Walls) > int(maxWalls) {
+				maxWalls = int32(len(ds1.tiles[y][x].Walls))
+			}
+		}
+	}
+
+	ds1.SetNumberOfWallLayers(maxWalls)
 
 	ds1.dirty = false
 }
