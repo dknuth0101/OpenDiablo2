@@ -765,7 +765,8 @@ func (ds1 *DS1) loadSubstitutions(br *d2datautils.StreamReader) error {
 	return err
 }
 
-func (ds1 *DS1) setupStreamLayerTypes() []d2enum.LayerStreamType {
+// GetStreamLayerTypes returns layers used in ds1
+func (ds1 *DS1) GetStreamLayerTypes() []d2enum.LayerStreamType {
 	var layerStream []d2enum.LayerStreamType
 
 	if ds1.version < v4 {
@@ -900,7 +901,7 @@ func (ds1 *DS1) loadLayerStreams(br *d2datautils.StreamReader) error {
 		0x0F, 0x10, 0x11, 0x12, 0x14,
 	}
 
-	layerStreamTypes := ds1.setupStreamLayerTypes()
+	layerStreamTypes := ds1.GetStreamLayerTypes()
 
 	for _, layerStreamType := range layerStreamTypes {
 		for y := 0; y < int(ds1.height); y++ {
@@ -1021,7 +1022,7 @@ func (ds1 *DS1) Marshal() []byte {
 }
 
 func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
-	layerStreamTypes := ds1.setupStreamLayerTypes()
+	layerStreamTypes := ds1.GetStreamLayerTypes()
 
 	for _, layerStreamType := range layerStreamTypes {
 		for y := 0; y < int(ds1.height); y++ {

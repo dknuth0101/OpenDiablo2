@@ -640,7 +640,7 @@ func TestDS1_SetSubstitutionGroups(t *testing.T) {
 	}
 }
 
-func TestDS1_setupStreamLayerTypes(t *testing.T) {
+func TestDS1_GetStreamLayerTypes(t *testing.T) {
 	ds1 := exampleDS1()
 
 	lst := []d2enum.LayerStreamType{
@@ -651,7 +651,7 @@ func TestDS1_setupStreamLayerTypes(t *testing.T) {
 		d2enum.LayerStreamSubstitute,
 	}
 
-	layerStreamTypes := ds1.setupStreamLayerTypes()
+	layerStreamTypes := ds1.GetStreamLayerTypes()
 
 	if len(lst) != len(layerStreamTypes) {
 		t.Fatal("unexpected length")
