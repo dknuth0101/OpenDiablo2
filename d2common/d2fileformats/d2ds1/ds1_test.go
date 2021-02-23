@@ -489,11 +489,16 @@ func TestDS1_NumberOfWalls(t *testing.T) {
 }
 
 func TestDS1_SetNumberOfWalls(t *testing.T) {
+	var err error
+
 	ds1 := exampleDS1()
 
 	newNumber := int32(4)
 
-	ds1.SetNumberOfWallLayers(newNumber)
+	err = ds1.SetNumberOfWallLayers(newNumber)
+	if err != nil {
+		t.Errorf("error setting number of walls: %v", err)
+	}
 
 	test := func(ds1 *DS1) {
 		if len(ds1.tiles[0][0].Walls) != int(newNumber) {
@@ -505,13 +510,16 @@ func TestDS1_SetNumberOfWalls(t *testing.T) {
 		}
 	}
 
-	if err := testIfRestorable(ds1, test); err != nil {
+	if err = testIfRestorable(ds1, test); err != nil {
 		t.Errorf("unable to restore: %v", err)
 	}
 
 	newNumber = 1
 
-	ds1.SetNumberOfWallLayers(newNumber)
+	err = ds1.SetNumberOfWallLayers(newNumber)
+	if err != nil {
+		t.Errorf("error setting number of walls: %v", err)
+	}
 
 	test = func(ds1 *DS1) {
 		if len(ds1.tiles[0][0].Walls) != int(newNumber) {
@@ -523,7 +531,7 @@ func TestDS1_SetNumberOfWalls(t *testing.T) {
 		}
 	}
 
-	if err := testIfRestorable(ds1, test); err != nil {
+	if err = testIfRestorable(ds1, test); err != nil {
 		t.Errorf("unable to restore: %v", err)
 	}
 }
@@ -537,11 +545,16 @@ func TestDS1_NumberOfFloors(t *testing.T) {
 }
 
 func TestDS1_SetNumberOfFloors(t *testing.T) {
+	var err error
+
 	ds1 := exampleDS1()
 
 	newNumber := int32(2)
 
-	ds1.SetNumberOfFloorLayers(newNumber)
+	err = ds1.SetNumberOfFloorLayers(newNumber)
+	if err != nil {
+		t.Errorf("error setting number of floors: %v", err)
+	}
 
 	test := func(ds1 *DS1) {
 		if len(ds1.tiles[0][0].Floors) != int(newNumber) {
@@ -553,13 +566,16 @@ func TestDS1_SetNumberOfFloors(t *testing.T) {
 		}
 	}
 
-	if err := testIfRestorable(ds1, test); err != nil {
+	if err = testIfRestorable(ds1, test); err != nil {
 		t.Errorf("unable to restore: %v", err)
 	}
 
 	newNumber = 1
 
-	ds1.SetNumberOfFloorLayers(newNumber)
+	err = ds1.SetNumberOfFloorLayers(newNumber)
+	if err != nil {
+		t.Errorf("error setting number of floors: %v", err)
+	}
 
 	test = func(ds1 *DS1) {
 		if len(ds1.tiles[0][0].Floors) != int(newNumber) {
@@ -571,7 +587,7 @@ func TestDS1_SetNumberOfFloors(t *testing.T) {
 		}
 	}
 
-	if err := testIfRestorable(ds1, test); err != nil {
+	if err = testIfRestorable(ds1, test); err != nil {
 		t.Errorf("unable to restore: %v", err)
 	}
 }

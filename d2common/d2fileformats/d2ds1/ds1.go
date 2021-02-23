@@ -2,6 +2,7 @@ package d2ds1
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2datautils"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2enum"
@@ -322,7 +323,11 @@ func (ds1 *DS1) NumberOfWallLayers() int {
 }
 
 // SetNumberOfWallLayers sets new number of tiles' walls
-func (ds1 *DS1) SetNumberOfWallLayers(n int32) {
+func (ds1 *DS1) SetNumberOfWallLayers(n int32) error {
+	if n > d2enum.MaxNumberOfWalls {
+		return fmt.Errorf("cannot set number of walls to %d: number of walls is greater than %d", n, d2enum.MaxNumberOfWalls)
+	}
+
 	for y := range ds1.tiles {
 		for x := range ds1.tiles[y] {
 			// ugh, I don't know, WHY do I nned to use
@@ -339,7 +344,7 @@ func (ds1 *DS1) SetNumberOfWallLayers(n int32) {
 
 	// if n = number of walls, do nothing
 	if n == ds1.numberOfWallLayers {
-		return
+		return nil
 	}
 
 	for y := range ds1.tiles {
@@ -352,6 +357,8 @@ func (ds1 *DS1) SetNumberOfWallLayers(n int32) {
 
 	ds1.dirty = true
 	ds1.update()
+
+	return nil
 }
 
 // NumberOfFloorLayers returns the number of floor layers per tile
@@ -364,7 +371,11 @@ func (ds1 *DS1) NumberOfFloorLayers() int {
 }
 
 // SetNumberOfFloorLayers sets new number of tiles' floors
-func (ds1 *DS1) SetNumberOfFloorLayers(n int32) {
+func (ds1 *DS1) SetNumberOfFloorLayers(n int32) error {
+	if n > d2enum.MaxNumberOfFloors {
+		return fmt.Errorf("cannot set number of floors to %d: number is greater than %d", n, d2enum.MaxNumberOfFloors)
+	}
+
 	for y := range ds1.tiles {
 		for x := range ds1.tiles[y] {
 			newFloors := ds1.tiles[y][x].Floors
@@ -378,7 +389,7 @@ func (ds1 *DS1) SetNumberOfFloorLayers(n int32) {
 
 	// if n = number of walls, do nothing
 	if n == ds1.numberOfFloorLayers {
-		return
+		return nil
 	}
 
 	ds1.dirty = true
@@ -396,6 +407,8 @@ func (ds1 *DS1) SetNumberOfFloorLayers(n int32) {
 	}
 
 	ds1.numberOfFloorLayers = n
+
+	return nil
 }
 
 // NumberOfShadowLayers returns the number of shadow layers per tile
@@ -434,6 +447,7 @@ func (ds1 *DS1) update() {
 	ds1.SetSize(len(ds1.tiles[0]), len(ds1.tiles))
 
 	maxWalls := ds1.numberOfWallLayers
+
 	for y := range ds1.tiles {
 		for x := range ds1.tiles[y] {
 			if len(ds1.tiles[y][x].Walls) > int(maxWalls) {
@@ -442,9 +456,13 @@ func (ds1 *DS1) update() {
 		}
 	}
 
-	ds1.SetNumberOfWallLayers(maxWalls)
+	err := ds1.SetNumberOfWallLayers(maxWalls)
+	if err != nil {
+		log.Print(err)
+	}
 
 	maxFloors := ds1.numberOfFloorLayers
+
 	for y := range ds1.tiles {
 		for x := range ds1.tiles[y] {
 			if len(ds1.tiles[y][x].Floors) > int(maxFloors) {
@@ -453,9 +471,14 @@ func (ds1 *DS1) update() {
 		}
 	}
 
-	ds1.SetNumberOfFloorLayers(maxFloors)
+	err = ds1.SetNumberOfFloorLayers(maxFloors)
+	if err != nil {
+		log.Print(err)
+	}
 
 	ds1.dirty = false
+
+	return
 }
 
 func (ds1 *DS1) ensureAtLeastOneTile() {
@@ -1033,6 +1056,7 @@ func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
 
 func (ds1 *DS1) encodeNPCs(sw *d2datautils.StreamWriter) {
 	objectsWithPaths := make([]int, 0)
+
 	for n, obj := range ds1.objects {
 		if len(obj.Paths) != 0 {
 			objectsWithPaths = append(objectsWithPaths, n)
