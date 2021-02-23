@@ -325,9 +325,15 @@ func (ds1 *DS1) NumberOfWallLayers() int {
 func (ds1 *DS1) SetNumberOfWallLayers(n int32) {
 	for y := range ds1.tiles {
 		for x := range ds1.tiles[y] {
-			for v := int32(0); v < n-int32(len(ds1.tiles[y][x].Walls)); v++ {
-				ds1.tiles[y][x].Walls = append(ds1.tiles[y][x].Walls, Wall{})
+			// ugh, I don't know, WHY do I nned to use
+			// helper variable, but other way
+			// simply doesn't work
+			newWalls := ds1.tiles[y][x].Walls
+			for v := int32(0); v < (n - int32(len(ds1.tiles[y][x].Walls))); v++ {
+				newWalls = append(newWalls, Wall{0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
 			}
+
+			ds1.tiles[y][x].Walls = newWalls
 		}
 	}
 
@@ -336,21 +342,16 @@ func (ds1 *DS1) SetNumberOfWallLayers(n int32) {
 		return
 	}
 
-	ds1.dirty = true
-	defer ds1.update()
-
 	for y := range ds1.tiles {
 		for x := range ds1.tiles[y] {
-			newWalls := make([]Wall, n)
-			for v := int32(0); v < n; v++ {
-				newWalls[v] = ds1.tiles[y][x].Walls[v]
-			}
-
-			ds1.tiles[y][x].Walls = newWalls
+			ds1.tiles[y][x].Walls = ds1.tiles[y][x].Walls[:n]
 		}
 	}
 
 	ds1.numberOfWallLayers = n
+
+	ds1.dirty = true
+	ds1.update()
 }
 
 // NumberOfFloorLayers returns the number of floor layers per tile
@@ -364,14 +365,14 @@ func (ds1 *DS1) NumberOfFloorLayers() int {
 
 // SetNumberOfFloorLayers sets new number of tiles' floors
 func (ds1 *DS1) SetNumberOfFloorLayers(n int32) {
-	// calculate, how much walls is missing
-	missingFloors := n - ds1.numberOfFloorLayers
-
 	for y := range ds1.tiles {
 		for x := range ds1.tiles[y] {
-			for v := int32(0); v < missingFloors; v++ {
-				ds1.tiles[y][x].Floors = append(ds1.tiles[y][x].Floors, Floor{})
+			newFloors := ds1.tiles[y][x].Floors
+			for v := int32(0); v < (n - int32(len(ds1.tiles[y][x].Floors))); v++ {
+				newFloors = append(newFloors, Floor{})
 			}
+
+			ds1.tiles[y][x].Floors = newFloors
 		}
 	}
 
@@ -442,6 +443,17 @@ func (ds1 *DS1) update() {
 	}
 
 	ds1.SetNumberOfWallLayers(maxWalls)
+
+	maxFloors := ds1.numberOfFloorLayers
+	for y := range ds1.tiles {
+		for x := range ds1.tiles[y] {
+			if len(ds1.tiles[y][x].Floors) > int(maxFloors) {
+				maxFloors = int32(len(ds1.tiles[y][x].Floors))
+			}
+		}
+	}
+
+	ds1.SetNumberOfFloorLayers(maxFloors)
 
 	ds1.dirty = false
 }

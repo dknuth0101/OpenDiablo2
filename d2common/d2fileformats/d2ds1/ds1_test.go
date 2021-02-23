@@ -491,7 +491,7 @@ func TestDS1_NumberOfWalls(t *testing.T) {
 func TestDS1_SetNumberOfWalls(t *testing.T) {
 	ds1 := exampleDS1()
 
-	newNumber := int32(3)
+	newNumber := int32(4)
 
 	ds1.SetNumberOfWallLayers(newNumber)
 
