@@ -477,8 +477,6 @@ func (ds1 *DS1) update() {
 	}
 
 	ds1.dirty = false
-
-	return
 }
 
 func (ds1 *DS1) ensureAtLeastOneTile() {
