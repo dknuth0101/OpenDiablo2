@@ -56,7 +56,6 @@ func exampleDS1() *DS1 {
 		numberOfFloorLayers:        1,
 		numberOfShadowLayers:       1,
 		numberOfSubstitutionLayers: 1,
-		npcIndexes:                 []int{},
 	}
 }
 
@@ -492,7 +491,7 @@ func TestDS1_NumberOfWalls(t *testing.T) {
 func TestDS1_SetNumberOfWalls(t *testing.T) {
 	ds1 := exampleDS1()
 
-	newNumber := int32(2)
+	newNumber := int32(3)
 
 	ds1.SetNumberOfWallLayers(newNumber)
 

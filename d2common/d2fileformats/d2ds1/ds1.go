@@ -56,10 +56,9 @@ type DS1 struct {
 	numberOfSubstitutionLayers int32               // SubstitutionNum number of substitution layer used
 	// substitutionGroupsNum      int32               // SubstitutionGroupsNum number of substitution groups, datas between objects & NPC paths
 
-	dirty      bool // when modifying tiles, need to perform upkeep on ds1 state
-	unknown1   []byte
-	unknown2   uint32
-	npcIndexes []int
+	dirty    bool // when modifying tiles, need to perform upkeep on ds1 state
+	unknown1 []byte
+	unknown2 uint32
 }
 
 // Files returns a list of file path strings.
@@ -804,7 +803,6 @@ func (ds1 *DS1) loadNPCs(br *d2datautils.StreamReader) error {
 		for idx, ds1Obj := range ds1.objects {
 			if ds1Obj.X == int(npcX) && ds1Obj.Y == int(npcY) {
 				objIdx = idx
-				ds1.npcIndexes = append(ds1.npcIndexes, idx)
 
 				break
 			}
@@ -1022,21 +1020,28 @@ func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
 }
 
 func (ds1 *DS1) encodeNPCs(sw *d2datautils.StreamWriter) {
+	objectsWithPaths := make([]int, 0)
+	for n, obj := range ds1.objects {
+		if len(obj.Paths) != 0 {
+			objectsWithPaths = append(objectsWithPaths, n)
+		}
+	}
+
 	// Step 5.1 - encode npc's
-	sw.PushUint32(uint32(len(ds1.npcIndexes)))
+	sw.PushUint32(uint32(len(objectsWithPaths)))
 
 	// Step 5.2 - enoce npcs' paths
-	for _, i := range ds1.npcIndexes {
-		sw.PushUint32(uint32(len(ds1.objects[i].Paths)))
-		sw.PushUint32(uint32(ds1.objects[i].X))
-		sw.PushUint32(uint32(ds1.objects[i].Y))
+	for objectIdx := range objectsWithPaths {
+		sw.PushUint32(uint32(len(ds1.objects[objectIdx].Paths)))
+		sw.PushUint32(uint32(ds1.objects[objectIdx].X))
+		sw.PushUint32(uint32(ds1.objects[objectIdx].Y))
 
-		for _, j := range ds1.objects[i].Paths {
-			sw.PushUint32(uint32(j.Position.X()))
-			sw.PushUint32(uint32(j.Position.Y()))
+		for _, path := range ds1.objects[objectIdx].Paths {
+			sw.PushUint32(uint32(path.Position.X()))
+			sw.PushUint32(uint32(path.Position.Y()))
 
 			if ds1.version >= v15 {
-				sw.PushUint32(uint32(j.Action))
+				sw.PushUint32(uint32(path.Action))
 			}
 		}
 	}
