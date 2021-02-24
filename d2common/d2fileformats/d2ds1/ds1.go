@@ -45,12 +45,7 @@ type DS1 struct {
 	files   []string // FilePtr table of file string pointers
 	objects []Object // objects
 	//tiles   [][]Tile // The tile data for the DS1
-	layers struct {
-		walls         [][][]*Wall
-		floors        [][][]*Floor
-		shadows       [][][]*Shadow
-		substitutions [][][]*Substitution
-	}
+	layers
 	substitutionGroups         []SubstitutionGroup // Substitution groups for the DS1
 	version                    int32               // The version of the DS1
 	width                      int32               // Width of map, in # of tiles
@@ -66,6 +61,12 @@ type DS1 struct {
 	dirty    bool // when modifying tiles, need to perform upkeep on ds1 state
 	unknown1 []byte
 	unknown2 uint32
+}
+type layers struct {
+	walls         [][][]*Wall
+	floors        [][][]*Floor
+	shadows       [][][]*Shadow
+	substitutions [][][]*Substitution
 }
 
 // Files returns a list of file path strings.
@@ -125,24 +126,24 @@ func defaultTiles() [][]Tile {
 }
 
 // Tiles returns the 2-dimensional (y,x) slice of tiles
-/*func (ds1 *DS1) Tiles() [][]Tile {
-	if ds1.tiles == nil {
+func (ds1 *DS1) Layers() layers {
+	/*if ds1.tiles == nil {
 		ds1.SetTiles(defaultTiles())
-	}
+	}*/
 
-	return ds1.tiles
-}*/
+	return ds1.layers
+}
 
 // SetTiles sets the 2-dimensional (y,x) slice of tiles for this ds1
-/*func (ds1 *DS1) SetTiles(tiles [][]Tile) {
-	if len(tiles) == 0 {
+func (ds1 *DS1) SetLayers(layers layers) {
+	/*if len(tiles) == 0 {
 		tiles = defaultTiles()
-	}
+	}*/
 
-	ds1.tiles = tiles
+	ds1.layers = layers
 	ds1.dirty = true
 	ds1.update()
-}*/
+}
 
 // Tile returns the tile at the given x,y tile coordinate (nil if x,y is out of bounds)
 func (ds1 *DS1) Tile(x, y int) *Tile {
