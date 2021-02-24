@@ -44,7 +44,6 @@ const (
 type DS1 struct {
 	files   []string // FilePtr table of file string pointers
 	objects []Object // objects
-	//tiles   [][]Tile // The tile data for the DS1
 	layers
 	substitutionGroups         []SubstitutionGroup // Substitution groups for the DS1
 	version                    int32               // The version of the DS1
@@ -335,6 +334,7 @@ func (ds1 *DS1) NumberOfWallLayers() int {
 	return int(ds1.numberOfWallLayers)
 }
 
+// Walls returns walls on specific x, y
 func (ds1 *DS1) Walls(x, y int) []*Wall {
 	w := make([]*Wall, ds1.numberOfWallLayers)
 	for i := range w {
@@ -344,6 +344,7 @@ func (ds1 *DS1) Walls(x, y int) []*Wall {
 	return w
 }
 
+// Floors returns floors on specific x, y
 func (ds1 *DS1) Floors(x, y int) []*Floor {
 	f := make([]*Floor, ds1.numberOfFloorLayers)
 	for i := range f {
@@ -353,6 +354,7 @@ func (ds1 *DS1) Floors(x, y int) []*Floor {
 	return f
 }
 
+// Shadows returns shadows on specific x, y
 func (ds1 *DS1) Shadows(x, y int) []*Shadow {
 	s := make([]*Shadow, ds1.numberOfShadowLayers)
 	for i := range s {
@@ -362,6 +364,7 @@ func (ds1 *DS1) Shadows(x, y int) []*Shadow {
 	return s
 }
 
+// Substitutions returns substitutions on specific x, y
 func (ds1 *DS1) Substitutions(x, y int) []*Substitution {
 	s := make([]*Substitution, ds1.numberOfSubstitutionLayers)
 	for i := range s {
@@ -589,18 +592,6 @@ func LoadDS1(fileData []byte) (*DS1, error) {
 			ds1.numberOfFloorLayers = 1
 		}
 	}
-
-	/*ds1.tiles = make([][]Tile, ds1.height)
-
-	for y := range ds1.tiles {
-		ds1.tiles[y] = make([]Tile, ds1.width)
-		for x := 0; x < int(ds1.width); x++ {
-			ds1.tiles[y][x].Walls = make([]*Wall, ds1.numberOfWallLayers)
-			ds1.tiles[y][x].Floors = make([]*Floor, ds1.numberOfFloorLayers)
-			ds1.tiles[y][x].Shadows = make([]*Shadow, ds1.numberOfShadowLayers)
-			ds1.tiles[y][x].Substitutions = make([]*Substitution, ds1.numberOfSubstitutionLayers)
-		}
-	}*/
 
 	ds1.layers.walls = make([][][]*Wall, ds1.numberOfWallLayers)
 	for n := 0; n < int(ds1.numberOfWallLayers); n++ {
