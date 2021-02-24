@@ -29,7 +29,7 @@ func (t *MapTile) GetSubTileFlags(x, y int) *d2dt1.SubTileFlags {
 // PrepareTile selects which graphic to use and updates the tiles subtileflags
 func (t *MapTile) PrepareTile(x, y int, me *MapEngine) {
 	for wIdx := range t.Components.Walls {
-		wall := &t.Components.Walls[wIdx]
+		wall := t.Components.Walls[wIdx]
 		options := me.GetTiles(int(wall.Style), int(wall.Sequence), wall.Type)
 
 		if options == nil {
@@ -44,7 +44,7 @@ func (t *MapTile) PrepareTile(x, y int, me *MapEngine) {
 	}
 
 	for fIdx := range t.Components.Floors {
-		floor := &t.Components.Floors[fIdx]
+		floor := t.Components.Floors[fIdx]
 		options := me.GetTiles(int(floor.Style), int(floor.Sequence), 0)
 
 		if options == nil {
@@ -64,7 +64,7 @@ func (t *MapTile) PrepareTile(x, y int, me *MapEngine) {
 	}
 
 	for sIdx := range t.Components.Shadows {
-		shadow := &t.Components.Shadows[sIdx]
+		shadow := t.Components.Shadows[sIdx]
 		options := me.GetTiles(int(shadow.Style), int(shadow.Sequence), 13)
 
 		if options == nil {
