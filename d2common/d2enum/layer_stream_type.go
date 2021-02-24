@@ -18,3 +18,9 @@ const (
 	LayerStreamShadow
 	LayerStreamSubstitute
 )
+
+// maximum number of layers of each type
+const (
+	MaxNumberOfWalls  = 4
+	MaxNumberOfFloors = 2
+)
