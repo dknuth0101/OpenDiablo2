@@ -860,25 +860,30 @@ func (ds1 *DS1) GetStreamLayerTypes() []d2enum.LayerStreamType {
 			d2enum.LayerStreamShadow,
 		}
 	} else {
+		numberOfWalls := len(ds1.layers.walls)
+		numberOfFloors := len(ds1.layers.floors)
+		numberOfShadows := len(ds1.layers.shadows)
+		numberOfSubstitutions := len(ds1.layers.substitutions)
+
 		// nolint:gomnd // constant
 		layerStream = make([]d2enum.LayerStreamType,
-			(ds1.numberOfWallLayers*2)+ds1.numberOfFloorLayers+ds1.numberOfShadowLayers+ds1.numberOfSubstitutionLayers)
+			(numberOfWalls*2)+numberOfFloors+numberOfShadows+numberOfSubstitutions)
 
 		layerIdx := 0
-		for i := 0; i < int(ds1.numberOfWallLayers); i++ {
+		for i := 0; i < numberOfWalls; i++ {
 			layerStream[layerIdx] = d2enum.LayerStreamType(int(d2enum.LayerStreamWall1) + i)
 			layerStream[layerIdx+1] = d2enum.LayerStreamType(int(d2enum.LayerStreamOrientation1) + i)
 			layerIdx += 2
 		}
-		for i := 0; i < int(ds1.numberOfFloorLayers); i++ {
+		for i := 0; i < numberOfFloors; i++ {
 			layerStream[layerIdx] = d2enum.LayerStreamType(int(d2enum.LayerStreamFloor1) + i)
 			layerIdx++
 		}
-		if ds1.numberOfShadowLayers > 0 {
+		if numberOfShadows > 0 {
 			layerStream[layerIdx] = d2enum.LayerStreamShadow
 			layerIdx++
 		}
-		if ds1.numberOfSubstitutionLayers > 0 {
+		if numberOfSubstitutions > 0 {
 			layerStream[layerIdx] = d2enum.LayerStreamSubstitute
 		}
 	}
