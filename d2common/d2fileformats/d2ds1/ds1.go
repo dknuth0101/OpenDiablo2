@@ -42,7 +42,7 @@ type DS1 struct {
 const (
 	defaultNumFloors        = 1
 	defaultNumShadows       = maxShadowLayers
-	defaultNumSubstitutions = maxSubstitutionLayers
+	defaultNumSubstitutions = 0
 )
 
 // Unmarshal the given bytes to a DS1 struct
@@ -482,6 +482,7 @@ func (ds1 *DS1) loadLayerStreams(br *d2datautils.StreamReader) error {
 	}
 
 	layerStreamTypes := ds1.getLayerSchema()
+	fmt.Println(layerStreamTypes)
 
 	for _, layerStreamType := range layerStreamTypes {
 		for y := 0; y < ds1.height; y++ {
