@@ -154,8 +154,8 @@ func (ds1 *DS1) loadHeader(br *d2datautils.StreamReader) error {
 		return fmt.Errorf("reading height: %v", err)
 	}
 
-	//width++
-	//height++
+	width++
+	height++
 
 	ds1.SetSize(int(width), int(height))
 
@@ -482,7 +482,6 @@ func (ds1 *DS1) loadLayerStreams(br *d2datautils.StreamReader) error {
 	}
 
 	layerStreamTypes := ds1.getLayerSchema()
-	fmt.Println(layerStreamTypes)
 
 	for _, layerStreamType := range layerStreamTypes {
 		for y := 0; y < ds1.height; y++ {
