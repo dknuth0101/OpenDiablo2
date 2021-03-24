@@ -607,39 +607,38 @@ func (ds1 *DS1) SetSize(w, h int) {
 // 	return sw.GetBytes()
 // }
 //
-// func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
-// 	/*
-// 		layerStreamTypes := ds1.getLayerSchema()
-//
-// 		for _, layerStreamType := range layerStreamTypes {
-// 			for y := 0; y < int(ds1.height); y++ {
-// 				for x := 0; x < int(ds1.width); x++ {
-// 					dw := uint32(0)
-//
-// 					switch layerStreamType {
-// 					case layerStreamWall1, layerStreamWall2, layerStreamWall3, layerStreamWall4:
-// 						wallIndex := int(layerStreamType) - int(layerStreamWall1)
-// 						ds1.tiles[y][x].Walls[wallIndex].Encode(sw)
-// 					case layerStreamOrientation1, layerStreamOrientation2,
-// 						layerStreamOrientation3, layerStreamOrientation4:
-// 						wallIndex := int(layerStreamType) - int(layerStreamOrientation1)
-// 						dw |= uint32(ds1.tiles[y][x].Walls[wallIndex].Type)
-// 						dw |= (uint32(ds1.tiles[y][x].Walls[wallIndex].Zero) & wallZeroBitmask) << wallZeroOffset
-//
-// 						sw.PushUint32(dw)
-// 					case layerStreamFloor1, layerStreamFloor2:
-// 						floorIndex := int(layerStreamType) - int(layerStreamFloor1)
-// 						ds1.tiles[y][x].Floors[floorIndex].Encode(sw)
-// 					case d2enum.layerStreamShadow1:
-// 						ds1.tiles[y][x].Shadows[0].Encode(sw)
-// 					case d2enum.layerStreamSubstitute1:
-// 						sw.PushUint32(ds1.tiles[y][x].Substitutions[0].Unknown)
-// 					}
-// 				}
-// 			}
-// 		}
-// 	*/
-// }
+func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
+	layerStreamTypes := ds1.getLayerSchema()
+
+	for _, layerStreamType := range layerStreamTypes {
+		for y := 0; y < int(ds1.height); y++ {
+			for x := 0; x < int(ds1.width); x++ {
+				dw := uint32(0)
+
+				switch layerStreamType {
+				case layerStreamWall1, layerStreamWall2, layerStreamWall3, layerStreamWall4:
+					wallIndex := int(layerStreamType) - int(layerStreamWall1)
+					ds1.Walls[wallIndex].Tile(x, y).EncodeWall(sw)
+				case layerStreamOrientation1, layerStreamOrientation2,
+					layerStreamOrientation3, layerStreamOrientation4:
+					wallIndex := int(layerStreamType) - int(layerStreamOrientation1)
+					dw |= uint32(ds1.Walls[wallIndex].Tile(x, y).Type)
+					dw |= (uint32(ds1.Walls[wallIndex].Tile(x, y).Zero) & wallZeroBitmask) << wallZeroOffset
+
+					sw.PushUint32(dw)
+				case layerStreamFloor1, layerStreamFloor2:
+					floorIndex := int(layerStreamType) - int(layerStreamFloor1)
+					ds1.Floors[floorIndex].Tile(x, y).EncodeFloor(sw)
+				case layerStreamShadow1:
+					ds1.Shadows[0].Tile(x, y).EncodeShadow(sw)
+				case layerStreamSubstitute1:
+					sw.PushUint32(ds1.Substitutions[0].Tile(x, y).Substitution)
+				}
+			}
+		}
+	}
+}
+
 //
 // func (ds1 *DS1) encodeNPCs(sw *d2datautils.StreamWriter) {
 // 	objectsWithPaths := make([]int, 0)
