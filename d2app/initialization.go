@@ -6,7 +6,7 @@ import (
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2loader/asset/types"
 
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2data"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2animdata"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2resource"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2util"
 	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2config"
@@ -54,11 +54,11 @@ func (a *App) initialize() error {
 }
 
 const (
-	fmtErrSourceNotFound = `file not found: %s
+	fmtErrSourceNotFound = `file not found: %q
 
-Please check your config file at %s
+Please check your config file at %q
 
-Also, verify that the MPQ files exist at %s
+Also, verify that the MPQ files exist at %q
 
 Capitalization in the file name matters.
 `
@@ -150,12 +150,12 @@ func (a *App) initAnimationData(path string) error {
 
 	a.Debugf(fmtLoadAnimData, path)
 
-	animData, err := d2data.LoadAnimationData(animDataBytes)
+	animData, err := d2animdata.Load(animDataBytes)
 	if err != nil {
 		a.Error(err.Error())
 	}
 
-	a.Infof("Loaded %d animation data records", len(animData))
+	a.Infof("Loaded %d animation data records", animData.GetRecordsCount())
 
 	a.asset.Records.Animation.Data = animData
 
