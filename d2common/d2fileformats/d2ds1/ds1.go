@@ -528,85 +528,87 @@ func (ds1 *DS1) SetSize(w, h int) {
 	ds1.ds1Layers.SetSize(w, h)
 }
 
-//
-// // Marshal encodes ds1 back to byte slice
-// func (ds1 *DS1) Marshal() []byte {
-// 	// create stream writer
-// 	sw := d2datautils.CreateStreamWriter()
-//
-// 	// Step 1 - encode header
-// 	sw.PushInt32(ds1.version)
-// 	sw.PushInt32(ds1.width - 1)
-// 	sw.PushInt32(ds1.height - 1)
-//
-// 	if ds1.version >= v8 {
-// 		sw.PushInt32(ds1.Act - 1)
-// 	}
-//
-// 	if ds1.version >= v10 {
-// 		sw.PushInt32(ds1.substitutionType)
-// 	}
-//
-// 	if ds1.version >= v3 {
-// 		sw.PushInt32(int32(len(ds1.Files)))
-//
-// 		for _, i := range ds1.Files {
-// 			sw.PushBytes([]byte(i)...)
-//
-// 			// separator
-// 			sw.PushBytes(0)
-// 		}
-// 	}
-//
-// 	if ds1.version >= v9 && ds1.version <= v13 {
-// 		sw.PushBytes(ds1.unknown1...)
-// 	}
-//
-// 	if ds1.version >= v4 {
-// 		sw.PushInt32(ds1.numberOfWallLayers)
-//
-// 		if ds1.version >= v16 {
-// 			sw.PushInt32(ds1.numberOfFloorLayers)
-// 		}
-// 	}
-//
-// 	// Step 2 - encode grid
-// 	ds1.encodeLayers(sw)
-//
-// 	// Step 3 - encode Objects
-// 	if !(ds1.version < v2) {
-// 		sw.PushInt32(int32(len(ds1.Objects)))
-//
-// 		for _, i := range ds1.Objects {
-// 			sw.PushUint32(uint32(i.Type))
-// 			sw.PushUint32(uint32(i.ID))
-// 			sw.PushUint32(uint32(i.X))
-// 			sw.PushUint32(uint32(i.Y))
-// 			sw.PushUint32(uint32(i.Flags))
-// 		}
-// 	}
-//
-// 	// Step 4 - encode Substitutions
-// 	if ds1.version >= v12 && (ds1.substitutionType == subType1 || ds1.substitutionType == subType2) {
-// 		sw.PushUint32(ds1.unknown2)
-//
-// 		sw.PushUint32(uint32(len(ds1.substitutionGroups)))
-//
-// 		for _, i := range ds1.substitutionGroups {
-// 			sw.PushInt32(i.TileX)
-// 			sw.PushInt32(i.TileY)
-// 			sw.PushInt32(i.WidthInTiles)
-// 			sw.PushInt32(i.HeightInTiles)
-// 			sw.PushInt32(i.Unknown)
-// 		}
-// 	}
-//
-// 	// Step 5 - encode NPC's and its paths
-// 	ds1.encodeNPCs(sw)
-//
-// 	return sw.GetBytes()
-// }
-//
+// Marshal encodes ds1 back to byte slice
+func (ds1 *DS1) Marshal() []byte {
+	// create stream writer
+	sw := d2datautils.CreateStreamWriter()
+
+	// Step 1 - encode header
+	sw.PushInt32(int32(ds1.version))
+	sw.PushInt32(int32(ds1.width - 1))
+	sw.PushInt32(int32(ds1.height - 1))
+
+	if ds1.version.specifiesAct() {
+		sw.PushInt32(ds1.Act - 1)
+	}
+
+	if ds1.version.specifiesSubstitutionType() {
+		sw.PushInt32(ds1.substitutionType)
+	}
+
+	if ds1.version.hasFileList() {
+		sw.PushInt32(int32(len(ds1.Files)))
+
+		for _, i := range ds1.Files {
+			sw.PushBytes([]byte(i)...)
+
+			// separator
+			sw.PushBytes(0)
+		}
+	}
+
+	if ds1.version.hasUnknown1Bytes() {
+		sw.PushBytes(ds1.unknown1...)
+	}
+
+	if ds1.version.specifiesWalls() {
+		sw.PushInt32(int32(len(ds1.Walls)))
+
+		if ds1.version.specifiesFloors() {
+			sw.PushInt32(int32(len(ds1.Walls)))
+		}
+	}
+
+	// Step 2 - encode grid
+	ds1.encodeLayers(sw)
+
+	// Step 3 - encode Objects
+	if ds1.version.hasObjects() {
+		sw.PushInt32(int32(len(ds1.Objects)))
+
+		for _, i := range ds1.Objects {
+			sw.PushUint32(uint32(i.Type))
+			sw.PushUint32(uint32(i.ID))
+			sw.PushUint32(uint32(i.X))
+			sw.PushUint32(uint32(i.Y))
+			sw.PushUint32(uint32(i.Flags))
+		}
+	}
+
+	// Step 4 - encode Substitutions
+	hasSubstitutions := ds1.version.hasSubstitutions() &&
+		(ds1.substitutionType == subType1 || ds1.substitutionType == subType2)
+
+	if hasSubstitutions {
+		sw.PushUint32(ds1.unknown2)
+
+		sw.PushUint32(uint32(len(ds1.substitutionGroups)))
+
+		for _, i := range ds1.substitutionGroups {
+			sw.PushInt32(i.TileX)
+			sw.PushInt32(i.TileY)
+			sw.PushInt32(i.WidthInTiles)
+			sw.PushInt32(i.HeightInTiles)
+			sw.PushInt32(i.Unknown)
+		}
+	}
+
+	// Step 5 - encode NPC's and its paths
+	ds1.encodeNPCs(sw)
+
+	return sw.GetBytes()
+}
+
 func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
 	layerStreamTypes := ds1.getLayerSchema()
 
@@ -639,33 +641,31 @@ func (ds1 *DS1) encodeLayers(sw *d2datautils.StreamWriter) {
 	}
 }
 
-//
-// func (ds1 *DS1) encodeNPCs(sw *d2datautils.StreamWriter) {
-// 	objectsWithPaths := make([]int, 0)
-//
-// 	for n, obj := range ds1.Objects {
-// 		if len(obj.Paths) != 0 {
-// 			objectsWithPaths = append(objectsWithPaths, n)
-// 		}
-// 	}
-//
-// 	// Step 5.1 - encode npc's
-// 	sw.PushUint32(uint32(len(objectsWithPaths)))
-//
-// 	// Step 5.2 - enoce npcs' paths
-// 	for objectIdx := range objectsWithPaths {
-// 		sw.PushUint32(uint32(len(ds1.Objects[objectIdx].Paths)))
-// 		sw.PushUint32(uint32(ds1.Objects[objectIdx].X))
-// 		sw.PushUint32(uint32(ds1.Objects[objectIdx].Y))
-//
-// 		for _, path := range ds1.Objects[objectIdx].Paths {
-// 			sw.PushUint32(uint32(path.Position.X()))
-// 			sw.PushUint32(uint32(path.Position.Y()))
-//
-// 			if ds1.version >= v15 {
-// 				sw.PushUint32(uint32(path.Action))
-// 			}
-// 		}
-// 	}
-// }
-//
+func (ds1 *DS1) encodeNPCs(sw *d2datautils.StreamWriter) {
+	objectsWithPaths := make([]int, 0)
+
+	for n, obj := range ds1.Objects {
+		if len(obj.Paths) != 0 {
+			objectsWithPaths = append(objectsWithPaths, n)
+		}
+	}
+
+	// Step 5.1 - encode npc's
+	sw.PushUint32(uint32(len(objectsWithPaths)))
+
+	// Step 5.2 - enoce npcs' paths
+	for objectIdx := range objectsWithPaths {
+		sw.PushUint32(uint32(len(ds1.Objects[objectIdx].Paths)))
+		sw.PushUint32(uint32(ds1.Objects[objectIdx].X))
+		sw.PushUint32(uint32(ds1.Objects[objectIdx].Y))
+
+		for _, path := range ds1.Objects[objectIdx].Paths {
+			sw.PushUint32(uint32(path.Position.X()))
+			sw.PushUint32(uint32(path.Position.Y()))
+
+			if ds1.version >= v15 {
+				sw.PushUint32(uint32(path.Action))
+			}
+		}
+	}
+}
