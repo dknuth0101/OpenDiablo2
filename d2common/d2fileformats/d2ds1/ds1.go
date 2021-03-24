@@ -237,7 +237,6 @@ func (ds1 *DS1) loadObjects(br *d2datautils.StreamReader) error {
 	for objIdx := 0; objIdx < int(numObjects); objIdx++ {
 		obj := Object{}
 		objType, err := br.ReadInt32()
-
 		if err != nil {
 			return fmt.Errorf("reading object's %d type: %v", objIdx, err)
 		}
@@ -475,7 +474,7 @@ func (ds1 *DS1) loadNpcPaths(br *d2datautils.StreamReader, objIdx, numPaths int)
 }
 
 func (ds1 *DS1) loadLayerStreams(br *d2datautils.StreamReader) error {
-	var dirLookup = []int32{
+	dirLookup := []int32{
 		0x00, 0x01, 0x02, 0x01, 0x02, 0x03, 0x03, 0x05, 0x05, 0x06,
 		0x06, 0x07, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
 		0x0F, 0x10, 0x11, 0x12, 0x14,
@@ -513,9 +512,9 @@ func (ds1 *DS1) loadLayerStreams(br *d2datautils.StreamReader) error {
 					floorIndex := int(layerStreamType) - int(layerStreamFloor1)
 					ds1.Floors[floorIndex].Tile(x, y).DecodeFloor(dw)
 				case layerStreamShadow1:
-					ds1.Floors[0].Tile(x, y).DecodeShadow(dw)
+					ds1.Shadows[0].Tile(x, y).DecodeShadow(dw)
 				case layerStreamSubstitute1:
-					ds1.Floors[0].Tile(x, y).Substitution = dw
+					ds1.Substitutions[0].Tile(x, y).Substitution = dw
 				}
 			}
 		}
