@@ -127,26 +127,9 @@ func (l *ds1Layers) push(t layerGroupType, layer *layer) {
 	l.ensureInit()
 	l.cull()
 
-	var group *layerGroup
+	group := l.getLayersGroup(t)
 
-	var max int
-
-	switch t {
-	case floorLayerGroup:
-		group = &l.Floors
-		max = maxFloorLayers
-	case wallLayerGroup:
-		group = &l.Walls
-		max = maxWallLayers
-	case shadowLayerGroup:
-		group = &l.Shadows
-		max = maxShadowLayers
-	case substitutionLayerGroup:
-		group = &l.Substitutions
-		max = maxSubstitutionLayers
-	default:
-		return
-	}
+	max := getMaxGroupLen(t)
 
 	if len(*group) < max {
 		*group = append(*group, layer)
@@ -341,4 +324,21 @@ func (l *ds1Layers) getLayersGroup(t layerGroupType) (group *layerGroup) {
 	}
 
 	return group
+}
+
+func getMaxGroupLen(t layerGroupType) (max int) {
+	switch t {
+	case floorLayerGroup:
+		max = maxFloorLayers
+	case wallLayerGroup:
+		max = maxWallLayers
+	case shadowLayerGroup:
+		max = maxShadowLayers
+	case substitutionLayerGroup:
+		max = maxSubstitutionLayers
+	default:
+		return 0
+	}
+
+	return max
 }
