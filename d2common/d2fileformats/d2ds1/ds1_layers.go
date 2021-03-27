@@ -189,6 +189,10 @@ func (l *ds1Layers) insert(t layerGroupType, idx int, newLayer *layer) {
 		return
 	}
 
+	if len(*group)+1 > getMaxGroupLen(t) {
+		return
+	}
+
 	if len(*group) == 0 {
 		*group = append(*group, newLayer) // nolint:staticcheck // we possibly use group later
 		return
