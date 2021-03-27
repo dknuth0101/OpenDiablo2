@@ -62,20 +62,8 @@ func (l *ds1Layers) cull() {
 
 // removes nil layers of given layer group type
 func (l *ds1Layers) cullNilLayers(t layerGroupType) {
-	var group *layerGroup
-
-	switch t {
-	case floorLayerGroup:
-		group = &l.Floors
-	case wallLayerGroup:
-		group = &l.Walls
-	case orientationLayerGroup:
-		group = &l.Orientations
-	case shadowLayerGroup:
-		group = &l.Shadows
-	case substitutionLayerGroup:
-		group = &l.Substitutions
-	default:
+	group := l.getLayersGroup(t)
+	if group == nil {
 		return
 	}
 
@@ -115,20 +103,8 @@ func (l *ds1Layers) enforceSize(t layerGroupType) {
 	l.ensureInit()
 	l.cull()
 
-	var group *layerGroup
-
-	switch t {
-	case floorLayerGroup:
-		group = &l.Floors
-	case wallLayerGroup:
-		group = &l.Walls
-	case orientationLayerGroup:
-		group = &l.Orientations
-	case shadowLayerGroup:
-		group = &l.Shadows
-	case substitutionLayerGroup:
-		group = &l.Substitutions
-	default:
+	group := l.getLayersGroup(t)
+	if group == nil {
 		return
 	}
 
@@ -194,24 +170,12 @@ func (l *ds1Layers) pop(t layerGroupType) *layer {
 	l.ensureInit()
 	l.cull()
 
-	var group *layerGroup
-
-	var theLayer *layer
-
-	switch t {
-	case floorLayerGroup:
-		group = &l.Floors
-	case wallLayerGroup:
-		group = &l.Walls
-	case orientationLayerGroup:
-		group = &l.Orientations
-	case shadowLayerGroup:
-		group = &l.Shadows
-	case substitutionLayerGroup:
-		group = &l.Substitutions
-	default:
+	group := l.getLayersGroup(t)
+	if group == nil {
 		return nil
 	}
+
+	var theLayer *layer
 
 	// remove last layer of slice and return it
 	if len(*group) > 0 {
@@ -229,20 +193,8 @@ func (l *ds1Layers) get(t layerGroupType, idx int) *layer {
 	l.ensureInit()
 	l.cull()
 
-	var group *layerGroup
-
-	switch t {
-	case floorLayerGroup:
-		group = &l.Floors
-	case wallLayerGroup:
-		group = &l.Walls
-	case orientationLayerGroup:
-		group = &l.Orientations
-	case shadowLayerGroup:
-		group = &l.Shadows
-	case substitutionLayerGroup:
-		group = &l.Substitutions
-	default:
+	group := l.getLayersGroup(t)
+	if group == nil {
 		return nil
 	}
 
@@ -261,20 +213,8 @@ func (l *ds1Layers) insert(t layerGroupType, idx int, newLayer *layer) {
 		return
 	}
 
-	var group *layerGroup
-
-	switch t {
-	case floorLayerGroup:
-		group = &l.Floors
-	case wallLayerGroup:
-		group = &l.Walls
-	case orientationLayerGroup:
-		group = &l.Orientations
-	case shadowLayerGroup:
-		group = &l.Shadows
-	case substitutionLayerGroup:
-		group = &l.Substitutions
-	default:
+	group := l.getLayersGroup(t)
+	if group == nil {
 		return
 	}
 
@@ -300,28 +240,16 @@ func (l *ds1Layers) delete(t layerGroupType, idx int) {
 	l.ensureInit()
 	l.cull()
 
-	var group layerGroup
-
-	switch t {
-	case floorLayerGroup:
-		group = l.Floors
-	case wallLayerGroup:
-		group = l.Walls
-	case orientationLayerGroup:
-		group = l.Orientations
-	case shadowLayerGroup:
-		group = l.Shadows
-	case substitutionLayerGroup:
-		group = l.Substitutions
-	default:
+	group := l.getLayersGroup(t)
+	if group == nil {
 		return
 	}
 
-	if idx >= len(group) || idx < 0 {
+	if idx >= len(*group) || idx < 0 {
 		return
 	}
 
-	group[idx] = nil
+	(*group)[idx] = nil
 
 	l.cull()
 }
@@ -429,4 +357,23 @@ func (l *ds1Layers) InsertSubstitution(idx int, newSubstitution *layer) {
 
 func (l *ds1Layers) DeleteSubstitution(idx int) {
 	l.delete(shadowLayerGroup, idx)
+}
+
+func (l *ds1Layers) getLayersGroup(t layerGroupType) (group *layerGroup) {
+	switch t {
+	case floorLayerGroup:
+		group = &l.Floors
+	case wallLayerGroup:
+		group = &l.Walls
+	case orientationLayerGroup:
+		group = &l.Orientations
+	case shadowLayerGroup:
+		group = &l.Shadows
+	case substitutionLayerGroup:
+		group = &l.Substitutions
+	default:
+		return nil
+	}
+
+	return group
 }
