@@ -157,7 +157,6 @@ func (ds1 *DS1) loadBody(stream *d2datautils.StreamReader) error {
 
 	for ; numWalls > 0; numWalls-- {
 		ds1.PushWall(&layer{})
-		ds1.PushOrientation(&layer{})
 	}
 
 	for ; numShadows > 0; numShadows-- {
@@ -242,7 +241,6 @@ func (ds1 *DS1) loadObjects(br *d2datautils.StreamReader) error {
 	for objIdx := 0; objIdx < int(numObjects); objIdx++ {
 		obj := Object{}
 		objType, err := br.ReadInt32()
-
 		if err != nil {
 			return fmt.Errorf("reading object's %d type: %v", objIdx, err)
 		}

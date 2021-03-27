@@ -83,10 +83,6 @@ func Test_ds1Layers_Push(t *testing.T) {
 		ds1layerTest(wallLayerGroup, t)
 	})
 
-	t.Run("Orientation", func(t *testing.T) {
-		ds1layerTest(orientationLayerGroup, t)
-	})
-
 	t.Run("Shadow", func(t *testing.T) {
 		ds1layerTest(shadowLayerGroup, t)
 	})
@@ -136,11 +132,6 @@ func ds1layerTest(lt layerGroupType, t *testing.T) { //nolint:funlen // no biggi
 		get = layers.GetWall
 		max = maxWallLayers
 		group = &layers.Walls
-	case orientationLayerGroup:
-		push = func() { layers.PushOrientation(&layer{}) }
-		get = layers.GetOrientation
-		max = maxOrientationLayers
-		group = &layers.Orientations
 	case shadowLayerGroup:
 		push = func() { layers.PushShadow(&layer{}) }
 		get = layers.GetShadow

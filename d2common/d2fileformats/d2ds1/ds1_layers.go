@@ -13,7 +13,6 @@ type layerGroupType int
 const (
 	floorLayerGroup layerGroupType = iota
 	wallLayerGroup
-	orientationLayerGroup
 	shadowLayerGroup
 	substitutionLayerGroup
 )
@@ -24,7 +23,6 @@ type ds1Layers struct {
 	width, height int
 	Floors        layerGroup
 	Walls         layerGroup
-	Orientations  layerGroup
 	Shadows       layerGroup
 	Substitutions layerGroup
 }
@@ -36,10 +34,6 @@ func (l *ds1Layers) ensureInit() {
 
 	if l.Walls == nil {
 		l.Walls = make(layerGroup, 0)
-	}
-
-	if l.Orientations == nil {
-		l.Orientations = make(layerGroup, 0)
 	}
 
 	if l.Shadows == nil {
@@ -55,7 +49,6 @@ func (l *ds1Layers) ensureInit() {
 func (l *ds1Layers) cull() {
 	l.cullNilLayers(floorLayerGroup)
 	l.cullNilLayers(wallLayerGroup)
-	l.cullNilLayers(orientationLayerGroup)
 	l.cullNilLayers(shadowLayerGroup)
 	l.cullNilLayers(substitutionLayerGroup)
 }
@@ -94,7 +87,6 @@ func (l *ds1Layers) SetSize(w, h int) {
 
 	l.enforceSize(floorLayerGroup)
 	l.enforceSize(wallLayerGroup)
-	l.enforceSize(orientationLayerGroup)
 	l.enforceSize(shadowLayerGroup)
 	l.enforceSize(substitutionLayerGroup)
 }
@@ -147,9 +139,6 @@ func (l *ds1Layers) push(t layerGroupType, layer *layer) {
 	case wallLayerGroup:
 		group = &l.Walls
 		max = maxWallLayers
-	case orientationLayerGroup:
-		group = &l.Orientations
-		max = maxOrientationLayers
 	case shadowLayerGroup:
 		group = &l.Shadows
 		max = maxShadowLayers
@@ -296,27 +285,6 @@ func (l *ds1Layers) DeleteWall(idx int) {
 	l.delete(wallLayerGroup, idx)
 }
 
-func (l *ds1Layers) GetOrientation(idx int) *layer {
-	return l.get(orientationLayerGroup, idx)
-}
-
-func (l *ds1Layers) PushOrientation(orientation *layer) *ds1Layers {
-	l.push(orientationLayerGroup, orientation)
-	return l
-}
-
-func (l *ds1Layers) PopOrientation() *layer {
-	return l.pop(orientationLayerGroup)
-}
-
-func (l *ds1Layers) InsertOrientation(idx int, newOrientation *layer) {
-	l.insert(orientationLayerGroup, idx, newOrientation)
-}
-
-func (l *ds1Layers) DeleteOrientation(idx int) {
-	l.delete(orientationLayerGroup, idx)
-}
-
 func (l *ds1Layers) GetShadow(idx int) *layer {
 	return l.get(shadowLayerGroup, idx)
 }
@@ -365,8 +333,6 @@ func (l *ds1Layers) getLayersGroup(t layerGroupType) (group *layerGroup) {
 		group = &l.Floors
 	case wallLayerGroup:
 		group = &l.Walls
-	case orientationLayerGroup:
-		group = &l.Orientations
 	case shadowLayerGroup:
 		group = &l.Shadows
 	case substitutionLayerGroup:
