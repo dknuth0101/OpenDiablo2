@@ -2,7 +2,6 @@ package d2ds1
 
 const (
 	maxWallLayers         = 4
-	maxOrientationLayers  = 4
 	maxFloorLayers        = 2
 	maxShadowLayers       = 1
 	maxSubstitutionLayers = 1

@@ -240,6 +240,7 @@ func (ds1 *DS1) loadObjects(br *d2datautils.StreamReader) error {
 
 	for objIdx := 0; objIdx < int(numObjects); objIdx++ {
 		obj := Object{}
+
 		objType, err := br.ReadInt32()
 		if err != nil {
 			return fmt.Errorf("reading object's %d type: %v", objIdx, err)
