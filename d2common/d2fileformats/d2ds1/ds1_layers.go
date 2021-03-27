@@ -306,7 +306,7 @@ func (l *ds1Layers) PopSubstitution() *layer {
 }
 
 func (l *ds1Layers) InsertSubstitution(idx int, newSubstitution *layer) {
-	l.insert(shadowLayerGroup, idx, newSubstitution)
+	l.insert(substitutionLayerGroup, idx, newSubstitution)
 }
 
 func (l *ds1Layers) DeleteSubstitution(idx int) {
