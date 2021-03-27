@@ -1,6 +1,7 @@
 package d2ds1
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -24,7 +25,38 @@ func Test_ds1Layers_GetSubstitution(t *testing.T) {}
 
 func Test_ds1Layers_GetWall(t *testing.T) {}
 
-func Test_ds1Layers_InsertFloor(t *testing.T) {}
+func Test_ds1Layers_InsertFloor(t *testing.T) {
+	ds1 := DS1{}
+	layers := make([]*layer, 3)
+	for i := range layers {
+		i := i
+		layers[i] = &layer{}
+		layers[i].tiles = make(tileGrid, 1)
+		layers[i].tiles[0] = make(tileRow, 1)
+		layers[i].SetSize(3, 3)
+		layers[i].tiles[0][0].Prop1 = byte(i)
+	}
+
+	ds1.ds1Layers = &ds1Layers{}
+	for i := range layers {
+		ds1.InsertFloor(0, layers[i])
+	}
+
+	if len(ds1.Floors) != 3 {
+		t.Fatal("unexpected floor len after setting")
+	}
+
+	idx := 0
+	_ = fmt.Println
+	for i := len(layers) - 1; i > 0; i-- {
+		// fmt.Println(i)
+		// fmt.Println(ds1.Floors[idx].tiles[0][0].Prop1)
+		if ds1.Floors[idx].tiles[0][0].Prop1 != byte(i) {
+			t.Fatal("unexpected tile inserted")
+		}
+		idx++
+	}
+}
 
 func Test_ds1Layers_InsertOrientation(t *testing.T) {}
 

@@ -261,30 +261,30 @@ func (l *ds1Layers) insert(t layerGroupType, idx int, newLayer *layer) {
 		return
 	}
 
-	var group layerGroup
+	var group *layerGroup
 
 	switch t {
 	case floorLayerGroup:
-		group = l.Floors
+		group = &l.Floors
 	case wallLayerGroup:
-		group = l.Walls
+		group = &l.Walls
 	case orientationLayerGroup:
-		group = l.Orientations
+		group = &l.Orientations
 	case shadowLayerGroup:
-		group = l.Shadows
+		group = &l.Shadows
 	case substitutionLayerGroup:
-		group = l.Substitutions
+		group = &l.Substitutions
 	default:
 		return
 	}
 
-	if len(group) == 0 {
-		group = append(group, newLayer) // nolint:staticcheck // we possibly use group later
+	if len(*group) == 0 {
+		*group = append(*group, newLayer) // nolint:staticcheck // we possibly use group later
 		return
 	}
 
-	if idx > len(group)-1 {
-		idx = len(group) - 1
+	if l := len(*group) - 1; idx > l {
+		idx = l
 	}
 
 	// example:
@@ -292,8 +292,8 @@ func (l *ds1Layers) insert(t layerGroupType, idx int, newLayer *layer) {
 	//		idx=1
 	//		newLayer=c
 	// 		existing layerGroup is [a, b]
-	group = append(group, group[idx:]...) // [a, b] becomes [a, b, b]
-	group[idx] = newLayer                 // [a, b, b] becomes [a, c, b]
+	newGroup := append((*group)[:idx], append([]*layer{newLayer}, (*group)[idx:]...)...)
+	*group = newGroup
 }
 
 func (l *ds1Layers) delete(t layerGroupType, idx int) {
