@@ -1,7 +1,6 @@
 package d2ds1
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -27,7 +26,9 @@ func Test_ds1Layers_GetWall(t *testing.T) {}
 
 func Test_ds1Layers_InsertFloor(t *testing.T) {
 	ds1 := DS1{}
+
 	layers := make([]*layer, 3)
+
 	for i := range layers {
 		i := i
 		layers[i] = &layer{}
@@ -47,10 +48,7 @@ func Test_ds1Layers_InsertFloor(t *testing.T) {
 	}
 
 	idx := 0
-	_ = fmt.Println
 	for i := len(layers) - 1; i > 0; i-- {
-		// fmt.Println(i)
-		// fmt.Println(ds1.Floors[idx].tiles[0][0].Prop1)
 		if ds1.Floors[idx].tiles[0][0].Prop1 != byte(i) {
 			t.Fatal("unexpected tile inserted")
 		}
