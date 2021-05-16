@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
+const bitsPerByte = 8
+
 // StreamWriter allows you to create a byte array by streaming in writes of various sizes
 type StreamWriter struct {
 	data      *bytes.Buffer
