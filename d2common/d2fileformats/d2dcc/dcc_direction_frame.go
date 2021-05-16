@@ -3,7 +3,6 @@ package d2dcc
 import (
 	"log"
 
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2datautils"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2geom"
 )
 
@@ -25,7 +24,7 @@ type DCCDirectionFrame struct {
 }
 
 // CreateDCCDirectionFrame Creates a DCCDirectionFrame for a DCC.
-func CreateDCCDirectionFrame(bits *d2datautils.BitMuncher, direction *DCCDirection) *DCCDirectionFrame {
+func CreateDCCDirectionFrame(bits *reader, direction *DCCDirection) *DCCDirectionFrame {
 	result := &DCCDirectionFrame{}
 
 	bits.GetBits(direction.Variable0Bits) // Variable0

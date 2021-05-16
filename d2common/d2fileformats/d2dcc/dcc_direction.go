@@ -3,9 +3,9 @@ package d2dcc
 import (
 	"log"
 
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2datautils"
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2geom"
+	"github.com/gravestench/unalignedreader"
 
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2geom"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2math"
 )
 
@@ -17,6 +17,8 @@ const (
 )
 
 const cellsPerRow = 4
+
+type reader = unalignedreader.UnalignedReader
 
 // DCCDirection represents a DCCDirection file.
 type DCCDirection struct {
@@ -45,20 +47,20 @@ type DCCDirection struct {
 
 // CreateDCCDirection creates an instance of a DCCDirection.
 // nolint:funlen // no need to reduce
-func CreateDCCDirection(bm *d2datautils.BitMuncher, file *DCC) *DCCDirection {
+func CreateDCCDirection(reader *reader, file *DCC) *DCCDirection {
 	// nolint:gomnd // constant
 	var crazyBitTable = []byte{0, 1, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 26, 28, 30, 32}
 
 	result := &DCCDirection{
-		OutSizeCoded:     int(bm.GetUInt32()),
-		CompressionFlags: int(bm.GetBits(2)),                //nolint:gomnd // binary data
-		Variable0Bits:    int(crazyBitTable[bm.GetBits(4)]), //nolint:gomnd // binary data
-		WidthBits:        int(crazyBitTable[bm.GetBits(4)]), //nolint:gomnd // binary data
-		HeightBits:       int(crazyBitTable[bm.GetBits(4)]), //nolint:gomnd // binary data
-		XOffsetBits:      int(crazyBitTable[bm.GetBits(4)]), //nolint:gomnd // binary data
-		YOffsetBits:      int(crazyBitTable[bm.GetBits(4)]), //nolint:gomnd // binary data
-		OptionalDataBits: int(crazyBitTable[bm.GetBits(4)]), //nolint:gomnd // binary data
-		CodedBytesBits:   int(crazyBitTable[bm.GetBits(4)]), //nolint:gomnd // binary data
+		OutSizeCoded:     int(reader.GetUInt32()),
+		CompressionFlags: int(reader.GetBits(2)),                //nolint:gomnd // binary data
+		Variable0Bits:    int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
+		WidthBits:        int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
+		HeightBits:       int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
+		XOffsetBits:      int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
+		YOffsetBits:      int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
+		OptionalDataBits: int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
+		CodedBytesBits:   int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
 		Frames:           make([]*DCCDirectionFrame, file.FramesPerDirection),
 	}
 
@@ -69,7 +71,7 @@ func CreateDCCDirection(bm *d2datautils.BitMuncher, file *DCC) *DCCDirection {
 
 	// Load the frame headers
 	for frameIdx := 0; frameIdx < file.FramesPerDirection; frameIdx++ {
-		result.Frames[frameIdx] = CreateDCCDirectionFrame(bm, result)
+		result.Frames[frameIdx] = CreateDCCDirectionFrame(reader, result)
 		minx = int(d2math.MinInt32(int32(result.Frames[frameIdx].Box.Left), int32(minx)))
 		miny = int(d2math.MinInt32(int32(result.Frames[frameIdx].Box.Top), int32(miny)))
 		maxx = int(d2math.MaxInt32(int32(result.Frames[frameIdx].Box.Right()), int32(maxx)))
@@ -84,19 +86,19 @@ func CreateDCCDirection(bm *d2datautils.BitMuncher, file *DCC) *DCCDirection {
 
 	// nolint:gomnd // byte operation
 	if (result.CompressionFlags & 0x2) > 0 {
-		result.EqualCellsBitstreamSize = int(bm.GetBits(20)) //nolint:gomnd // binary data
+		result.EqualCellsBitstreamSize = int(reader.GetBits(20)) //nolint:gomnd // binary data
 	}
 
-	result.PixelMaskBitstreamSize = int(bm.GetBits(20)) //nolint:gomnd // binary data
+	result.PixelMaskBitstreamSize = int(reader.GetBits(20)) //nolint:gomnd // binary data
 
 	// nolint:gomnd // byte operation
 	if (result.CompressionFlags & 0x1) > 0 {
-		result.EncodingTypeBitsreamSize = int(bm.GetBits(20))   //nolint:gomnd // binary data
-		result.RawPixelCodesBitstreamSize = int(bm.GetBits(20)) //nolint:gomnd // binary data
+		result.EncodingTypeBitsreamSize = int(reader.GetBits(20))   //nolint:gomnd // binary data
+		result.RawPixelCodesBitstreamSize = int(reader.GetBits(20)) //nolint:gomnd // binary data
 	}
 
 	for paletteEntryCount, i := 0, 0; i < 256; i++ {
-		valid := bm.GetBit() != 0
+		valid := reader.GetBit() != 0
 		if valid {
 			result.PaletteEntries[paletteEntryCount] = byte(i)
 			paletteEntryCount++
@@ -108,23 +110,23 @@ func CreateDCCDirection(bm *d2datautils.BitMuncher, file *DCC) *DCCDirection {
 	// here. For example, if you are on byte offset 3, bit offset 6, and
 	// the EqualCellsBitstreamSize is 20 bytes, then the next bit stream
 	// will be located at byte 23, bit offset 6!
-	equalCellsBitstream := d2datautils.CopyBitMuncher(bm)
+	equalCellsBitstream := unalignedreader.Copy(reader)
 
-	bm.SkipBits(result.EqualCellsBitstreamSize)
+	reader.SkipBits(result.EqualCellsBitstreamSize)
 
-	pixelMaskBitstream := d2datautils.CopyBitMuncher(bm)
+	pixelMaskBitstream := unalignedreader.Copy(reader)
 
-	bm.SkipBits(result.PixelMaskBitstreamSize)
+	reader.SkipBits(result.PixelMaskBitstreamSize)
 
-	encodingTypeBitsream := d2datautils.CopyBitMuncher(bm)
+	encodingTypeBitsream := unalignedreader.Copy(reader)
 
-	bm.SkipBits(result.EncodingTypeBitsreamSize)
+	reader.SkipBits(result.EncodingTypeBitsreamSize)
 
-	rawPixelCodesBitstream := d2datautils.CopyBitMuncher(bm)
+	rawPixelCodesBitstream := unalignedreader.Copy(reader)
 
-	bm.SkipBits(result.RawPixelCodesBitstreamSize)
+	reader.SkipBits(result.RawPixelCodesBitstreamSize)
 
-	pixelCodeandDisplacement := d2datautils.CopyBitMuncher(bm)
+	pixelCodeandDisplacement := unalignedreader.Copy(reader)
 
 	// Calculate the cells for the direction
 	result.calculateCells()
@@ -145,7 +147,7 @@ func CreateDCCDirection(bm *d2datautils.BitMuncher, file *DCC) *DCCDirection {
 	// Verify that everything we expected to read was actually read (sanity check)...
 	result.verify(equalCellsBitstream, pixelMaskBitstream, encodingTypeBitsream, rawPixelCodesBitstream)
 
-	bm.SkipBits(pixelCodeandDisplacement.BitsRead())
+	reader.SkipBits(pixelCodeandDisplacement.BitsRead())
 
 	return result
 }
@@ -154,7 +156,7 @@ func (v *DCCDirection) verify(
 	equalCellsBitstream,
 	pixelMaskBitstream,
 	encodingTypeBitstream,
-	rawPixelCodesBitstream *d2datautils.BitMuncher,
+	rawPixelCodesBitstream *reader,
 ) {
 	if equalCellsBitstream.BitsRead() != v.EqualCellsBitstreamSize {
 		log.Panic("Did not read the correct number of bits!")
@@ -174,7 +176,7 @@ func (v *DCCDirection) verify(
 }
 
 // nolint:gocognit,gocyclo // Can't reduce
-func (v *DCCDirection) generateFrames(pcd *d2datautils.BitMuncher) {
+func (v *DCCDirection) generateFrames(pcd *reader) {
 	pbIdx := 0
 
 	for _, cell := range v.Cells {
@@ -277,7 +279,7 @@ func (v *DCCDirection) generateFrames(pcd *d2datautils.BitMuncher) {
 }
 
 //nolint:funlen,gocognit,gocyclo // can't reduce
-func (v *DCCDirection) fillPixelBuffer(pcd, ec, pm, et, rp *d2datautils.BitMuncher) {
+func (v *DCCDirection) fillPixelBuffer(pcd, ec, pm, et, rp *reader) {
 	var pixelMaskLookup = []int{0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4}
 
 	lastPixel := uint32(0)

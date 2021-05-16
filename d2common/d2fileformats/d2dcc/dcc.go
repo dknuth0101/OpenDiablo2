@@ -3,7 +3,7 @@ package d2dcc
 import (
 	"errors"
 
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2datautils"
+	"github.com/gravestench/unalignedreader"
 )
 
 const dccFileSignature = 0x74
@@ -26,7 +26,7 @@ func Load(fileData []byte) (*DCC, error) {
 		fileData: fileData,
 	}
 
-	var bm = d2datautils.CreateBitMuncher(fileData, 0)
+	var bm = unalignedreader.New(fileData, 0)
 
 	result.Signature = int(bm.GetByte())
 
@@ -58,7 +58,7 @@ func Load(fileData []byte) (*DCC, error) {
 
 // decodeDirection decodes and returns the given direction
 func (d *DCC) decodeDirection(direction int) *DCCDirection {
-	return CreateDCCDirection(d2datautils.CreateBitMuncher(d.fileData,
+	return CreateDCCDirection(unalignedreader.New(d.fileData,
 		d.directionOffsets[direction]*directionOffsetMultiplier), d)
 }
 
