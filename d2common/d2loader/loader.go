@@ -6,17 +6,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2loader/mpq"
+	"github.com/gravestench/weightedcache"
 
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2loader/filesystem"
-
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2cache"
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2interface"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2loader/asset"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2loader/asset/types"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2loader/filesystem"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2loader/mpq"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2resource"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2util"
 )
+
+type weightedCache = *weightedcache.WeightedCache
 
 const (
 	defaultCacheBudget = 1024 * 1024 * 512
@@ -41,7 +41,7 @@ func NewLoader(l d2util.LogLevel) (*Loader, error) {
 	loader.LoaderProviders[types.AssetSourceMPQ] = mpq.NewSource
 	loader.LoaderProviders[types.AssetSourceFileSystem] = filesystem.OnAddSource
 
-	loader.Cache = d2cache.CreateCache(defaultCacheBudget)
+	loader.Cache = weightedcache.New(defaultCacheBudget)
 	loader.Logger = d2util.NewLogger()
 
 	loader.Logger.SetPrefix(logPrefix)
@@ -53,9 +53,9 @@ func NewLoader(l d2util.LogLevel) (*Loader, error) {
 // Loader represents the manager that handles loading and caching assets with the asset Sources
 // that have been added
 type Loader struct {
+	Cache    weightedCache
 	language *string
 	charset  *string
-	d2interface.Cache
 	*d2util.Logger
 	LoaderProviders map[types.SourceType]func(path string) (asset.Source, error)
 	Sources         []asset.Source
@@ -84,11 +84,11 @@ func (l *Loader) Load(subPath string) (io.ReadSeeker, error) {
 		subPath = strings.ReplaceAll(subPath, tableToken, *language)
 	}
 
-	// if it isn't in the cache, we check if each source can open the file
+	// if it isn't in the weightedCache, we check if each source can open the file
 	for idx := range l.Sources {
 		source := l.Sources[idx]
 
-		// if the source can open the file, then we cache it and return it
+		// if the source can open the file, then we weightedCache it and return it
 		loadedAsset, err := source.Open(subPath)
 		if err != nil {
 			l.Debug(fmt.Sprintf("Checked `%s`, file not found", source.Path()))
@@ -139,11 +139,11 @@ func (l *Loader) Exists(subPath string) bool {
 		subPath = strings.ReplaceAll(subPath, tableToken, *language)
 	}
 
-	// if it isn't in the cache, we check if each source can open the file
+	// if it isn't in the weightedCache, we check if each source can open the file
 	for idx := range l.Sources {
 		source := l.Sources[idx]
 
-		// if the source can open the file, then we cache it and return it
+		// if the source can open the file, then we weightedCache it and return it
 		if source.Exists(subPath) {
 			return true
 		}

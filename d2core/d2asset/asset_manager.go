@@ -7,29 +7,25 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2cof"
-
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2ds1"
-
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2dt1"
-
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2resource"
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2util"
-
-	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2records"
-
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2font"
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2txt"
+	"github.com/gravestench/weightedcache"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2enum"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2cof"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2dat"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2dc6"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2dcc"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2ds1"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2dt1"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2font"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2pl2"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2tbl"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2txt"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2interface"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2loader"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2loader/asset/types"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2resource"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2util"
+	"github.com/OpenDiablo2/OpenDiablo2/d2core/d2records"
 )
 
 const (
@@ -60,20 +56,22 @@ const (
 	fmtLoadDict        = "loading data dictionary: %s"
 )
 
+type cache = *weightedcache.WeightedCache
+
 // AssetManager loads files and game objects
 type AssetManager struct {
 	*d2util.Logger
 	*d2loader.Loader
 
 	tables           []d2tbl.TextDictionary
-	dt1s             d2interface.Cache
-	ds1s             d2interface.Cache
-	cofs             d2interface.Cache
-	dccs             d2interface.Cache
-	animations       d2interface.Cache
-	fonts            d2interface.Cache
-	palettes         d2interface.Cache
-	transforms       d2interface.Cache
+	dt1s             cache
+	ds1s             cache
+	cofs             cache
+	dccs             cache
+	animations       cache
+	fonts            cache
+	palettes         cache
+	transforms       cache
 	Records          *d2records.RecordManager
 	language         string
 	languageModifier int
@@ -456,9 +454,9 @@ func (am *AssetManager) commandAssetSpam(term d2interface.Terminal) func([]strin
 
 func (am *AssetManager) commandAssetStat(term d2interface.Terminal) func([]string) error {
 	return func([]string) error {
-		var cacheStatistics = func(c d2interface.Cache) float64 {
+		var cacheStatistics = func(c cache) float64 {
 			const percent = 100.0
-			return float64(c.GetWeight()) / float64(c.GetBudget()) * percent
+			return float64(c.Weight()) / float64(c.Budget()) * percent
 		}
 
 		term.Infof("palette cache: %f", cacheStatistics(am.palettes))
