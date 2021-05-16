@@ -153,6 +153,8 @@ func (a *App) initAnimationData(path string) error {
 	animData, err := d2animdata.Load(animDataBytes)
 	if err != nil {
 		a.Error(err.Error())
+
+		return err
 	}
 
 	a.Infof("Loaded %d animation data records", animData.GetRecordsCount())
