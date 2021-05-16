@@ -26,30 +26,30 @@ func Load(fileData []byte) (*DCC, error) {
 		fileData: fileData,
 	}
 
-	var bm = unalignedreader.New(fileData, 0)
+	var reader = unalignedreader.New(fileData, 0)
 
-	result.Signature = int(bm.GetByte())
+	result.Signature = int(reader.ReadByte())
 
 	if result.Signature != dccFileSignature {
 		return nil, errors.New("signature expected to be 0x74 but it is not")
 	}
 
-	result.Version = int(bm.GetByte())
-	result.NumberOfDirections = int(bm.GetByte())
-	result.FramesPerDirection = int(bm.GetInt32())
+	result.Version = int(reader.ReadByte())
+	result.NumberOfDirections = int(reader.ReadByte())
+	result.FramesPerDirection = int(reader.ReadInt32())
 
 	result.Directions = make([]*DCCDirection, result.NumberOfDirections)
 
-	if bm.GetInt32() != 1 {
+	if reader.ReadInt32() != 1 {
 		return nil, errors.New("this value isn't 1. It has to be 1")
 	}
 
-	bm.GetInt32() // TotalSizeCoded
+	reader.ReadInt32() // TotalSizeCoded
 
 	result.directionOffsets = make([]int, result.NumberOfDirections)
 
 	for i := 0; i < result.NumberOfDirections; i++ {
-		result.directionOffsets[i] = int(bm.GetInt32())
+		result.directionOffsets[i] = int(reader.ReadInt32())
 		result.Directions[i] = result.decodeDirection(i)
 	}
 

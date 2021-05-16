@@ -27,15 +27,15 @@ type DCCDirectionFrame struct {
 func CreateDCCDirectionFrame(bits *reader, direction *DCCDirection) *DCCDirectionFrame {
 	result := &DCCDirectionFrame{}
 
-	bits.GetBits(direction.Variable0Bits) // Variable0
+	bits.ReadBitsAsUInt32(direction.Variable0Bits) // Variable0
 
-	result.Width = int(bits.GetBits(direction.WidthBits))
-	result.Height = int(bits.GetBits(direction.HeightBits))
-	result.XOffset = bits.GetSignedBits(direction.XOffsetBits)
-	result.YOffset = bits.GetSignedBits(direction.YOffsetBits)
-	result.NumberOfOptionalBytes = int(bits.GetBits(direction.OptionalDataBits))
-	result.NumberOfCodedBytes = int(bits.GetBits(direction.CodedBytesBits))
-	result.FrameIsBottomUp = bits.GetBit() == 1
+	result.Width = int(bits.ReadBitsAsUInt32(direction.WidthBits))
+	result.Height = int(bits.ReadBitsAsUInt32(direction.HeightBits))
+	result.XOffset = bits.ReadSignedBits(direction.XOffsetBits)
+	result.YOffset = bits.ReadSignedBits(direction.YOffsetBits)
+	result.NumberOfOptionalBytes = int(bits.ReadBitsAsUInt32(direction.OptionalDataBits))
+	result.NumberOfCodedBytes = int(bits.ReadBitsAsUInt32(direction.CodedBytesBits))
+	result.FrameIsBottomUp = bits.ReadBit() == 1
 
 	if result.FrameIsBottomUp {
 		log.Panic("Bottom up frames are not implemented.")

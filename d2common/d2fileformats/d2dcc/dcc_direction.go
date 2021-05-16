@@ -52,15 +52,15 @@ func CreateDCCDirection(reader *reader, file *DCC) *DCCDirection {
 	var crazyBitTable = []byte{0, 1, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 26, 28, 30, 32}
 
 	result := &DCCDirection{
-		OutSizeCoded:     int(reader.GetUInt32()),
-		CompressionFlags: int(reader.GetBits(2)),                //nolint:gomnd // binary data
-		Variable0Bits:    int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
-		WidthBits:        int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
-		HeightBits:       int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
-		XOffsetBits:      int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
-		YOffsetBits:      int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
-		OptionalDataBits: int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
-		CodedBytesBits:   int(crazyBitTable[reader.GetBits(4)]), //nolint:gomnd // binary data
+		OutSizeCoded:     int(reader.ReadUInt32()),
+		CompressionFlags: int(reader.ReadBitsAsUInt32(2)),                //nolint:gomnd // binary data
+		Variable0Bits:    int(crazyBitTable[reader.ReadBitsAsUInt32(4)]), //nolint:gomnd // binary data
+		WidthBits:        int(crazyBitTable[reader.ReadBitsAsUInt32(4)]), //nolint:gomnd // binary data
+		HeightBits:       int(crazyBitTable[reader.ReadBitsAsUInt32(4)]), //nolint:gomnd // binary data
+		XOffsetBits:      int(crazyBitTable[reader.ReadBitsAsUInt32(4)]), //nolint:gomnd // binary data
+		YOffsetBits:      int(crazyBitTable[reader.ReadBitsAsUInt32(4)]), //nolint:gomnd // binary data
+		OptionalDataBits: int(crazyBitTable[reader.ReadBitsAsUInt32(4)]), //nolint:gomnd // binary data
+		CodedBytesBits:   int(crazyBitTable[reader.ReadBitsAsUInt32(4)]), //nolint:gomnd // binary data
 		Frames:           make([]*DCCDirectionFrame, file.FramesPerDirection),
 	}
 
@@ -86,19 +86,19 @@ func CreateDCCDirection(reader *reader, file *DCC) *DCCDirection {
 
 	// nolint:gomnd // byte operation
 	if (result.CompressionFlags & 0x2) > 0 {
-		result.EqualCellsBitstreamSize = int(reader.GetBits(20)) //nolint:gomnd // binary data
+		result.EqualCellsBitstreamSize = int(reader.ReadBitsAsUInt32(20)) //nolint:gomnd // binary data
 	}
 
-	result.PixelMaskBitstreamSize = int(reader.GetBits(20)) //nolint:gomnd // binary data
+	result.PixelMaskBitstreamSize = int(reader.ReadBitsAsUInt32(20)) //nolint:gomnd // binary data
 
 	// nolint:gomnd // byte operation
 	if (result.CompressionFlags & 0x1) > 0 {
-		result.EncodingTypeBitsreamSize = int(reader.GetBits(20))   //nolint:gomnd // binary data
-		result.RawPixelCodesBitstreamSize = int(reader.GetBits(20)) //nolint:gomnd // binary data
+		result.EncodingTypeBitsreamSize = int(reader.ReadBitsAsUInt32(20))   //nolint:gomnd // binary data
+		result.RawPixelCodesBitstreamSize = int(reader.ReadBitsAsUInt32(20)) //nolint:gomnd // binary data
 	}
 
 	for paletteEntryCount, i := 0, 0; i < 256; i++ {
-		valid := reader.GetBit() != 0
+		valid := reader.ReadBit() != 0
 		if valid {
 			result.PaletteEntries[paletteEntryCount] = byte(i)
 			paletteEntryCount++
@@ -247,7 +247,7 @@ func (v *DCCDirection) generateFrames(pcd *reader) {
 					}
 					for y := 0; y < cell.Height; y++ {
 						for x := 0; x < cell.Width; x++ {
-							paletteIndex := pcd.GetBits(bitsToRead)
+							paletteIndex := pcd.ReadBitsAsUInt32(bitsToRead)
 							v.PixelData[x+cell.XOffset+((y+cell.YOffset)*v.Box.Width)] = pbe.Value[paletteIndex]
 						}
 					}
@@ -324,13 +324,13 @@ func (v *DCCDirection) fillPixelBuffer(pcd, ec, pm, et, rp *reader) {
 
 				if cellBuffer[currentCell] != nil {
 					if v.EqualCellsBitstreamSize > 0 {
-						tmp = int(ec.GetBit())
+						tmp = int(ec.ReadBit())
 					} else {
 						tmp = 0
 					}
 
 					if tmp == 0 {
-						pixelMask = pm.GetBits(4) //nolint:gomnd // binary data
+						pixelMask = pm.ReadBitsAsUInt32(4) //nolint:gomnd // binary data
 					} else {
 						nextCell = true
 					}
@@ -350,7 +350,7 @@ func (v *DCCDirection) fillPixelBuffer(pcd, ec, pm, et, rp *reader) {
 				encodingType := 0
 
 				if (numberOfPixelBits != 0) && (v.EncodingTypeBitsreamSize > 0) {
-					encodingType = int(et.GetBit())
+					encodingType = int(et.ReadBit())
 				} else {
 					encodingType = 0
 				}
@@ -359,13 +359,13 @@ func (v *DCCDirection) fillPixelBuffer(pcd, ec, pm, et, rp *reader) {
 
 				for i := 0; i < numberOfPixelBits; i++ {
 					if encodingType != 0 {
-						pixelStack[i] = rp.GetBits(8) //nolint:gomnd // binary data
+						pixelStack[i] = rp.ReadBitsAsUInt32(8) //nolint:gomnd // binary data
 					} else {
 						pixelStack[i] = lastPixel
-						pixelDisplacement := pcd.GetBits(4) //nolint:gomnd // binary data
+						pixelDisplacement := pcd.ReadBitsAsUInt32(4) //nolint:gomnd // binary data
 						pixelStack[i] += pixelDisplacement
 						for pixelDisplacement == 15 {
-							pixelDisplacement = pcd.GetBits(4) //nolint:gomnd // binary data
+							pixelDisplacement = pcd.ReadBitsAsUInt32(4) //nolint:gomnd // binary data
 							pixelStack[i] += pixelDisplacement
 						}
 					}

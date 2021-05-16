@@ -209,7 +209,7 @@ func decode(reader *unalignedreader.UnalignedReader, head *linkedNode) *linkedNo
 			log.Fatal("unexpected end of file")
 		}
 
-		bit := reader.GetBit()
+		bit := reader.ReadBit()
 		if bit == 0 {
 			node = node.child0
 			continue
@@ -401,7 +401,7 @@ Loop:
 		case 256:
 			break Loop
 		case 257:
-			newvalue := reader.GetByte()
+			newvalue := reader.ReadByte()
 
 			outputstream.PushBytes(newvalue)
 			tail = insertNode(tail, int(newvalue))

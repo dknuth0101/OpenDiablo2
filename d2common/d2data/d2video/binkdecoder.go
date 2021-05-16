@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2datautils"
+	"github.com/gravestench/unalignedreader"
 )
 
 // BinkVideoMode is the video mode type
@@ -60,7 +60,7 @@ type BinkAudioTrack struct {
 type BinkDecoder struct {
 	AudioTracks           []BinkAudioTrack
 	FrameIndexTable       []uint32
-	streamReader          *d2datautils.StreamReader
+	reader                *unalignedreader.UnalignedReader
 	fileSize              uint32
 	numberOfFrames        uint32
 	largestFrameSizeBytes uint32
@@ -81,7 +81,7 @@ type BinkDecoder struct {
 // CreateBinkDecoder returns a new instance of the bink decoder
 func CreateBinkDecoder(source []byte) (*BinkDecoder, error) {
 	result := &BinkDecoder{
-		streamReader: d2datautils.CreateStreamReader(source),
+		reader: unalignedreader.New(source, 0),
 	}
 
 	err := result.loadHeaderInformation()
@@ -91,18 +91,11 @@ func CreateBinkDecoder(source []byte) (*BinkDecoder, error) {
 
 // GetNextFrame gets the next frame
 func (v *BinkDecoder) GetNextFrame() error {
-	//nolint:gocritic // v.streamReader.SetPosition(uint64(v.FrameIndexTable[i] & 0xFFFFFFFE))
-	lengthOfAudioPackets, err := v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
+	//nolint:gocritic // v.reader.SetPosition(uint64(v.FrameIndexTable[i] & 0xFFFFFFFE))
+	lengthOfAudioPackets := v.reader.ReadUInt32()
+	samplesInPacket := v.reader.ReadUInt32()
 
-	samplesInPacket, err := v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
-
-	v.streamReader.SkipBytes(int(lengthOfAudioPackets) - 4) //nolint:gomnd // decode magic
+	v.reader.SkipBytes(int(lengthOfAudioPackets) - 4) //nolint:gomnd // decode magic
 
 	log.Printf("Frame %d:\tSamp: %d", v.frameIndex, samplesInPacket)
 
@@ -113,122 +106,66 @@ func (v *BinkDecoder) GetNextFrame() error {
 
 //nolint:gomnd,funlen,gocyclo // Decoder magic, can't help the long function length for now
 func (v *BinkDecoder) loadHeaderInformation() error {
-	v.streamReader.SetPosition(0)
+	v.reader.SetPosition(0)
 
-	var err error
-
-	headerBytes, err := v.streamReader.ReadBytes(numHeaderBytes)
-	if err != nil {
-		return err
-	}
+	headerBytes := v.reader.ReadBytes(numHeaderBytes)
 
 	if string(headerBytes) != bikHeaderStr {
 		return errors.New("invalid header for bink video")
 	}
 
-	v.videoCodecRevision, err = v.streamReader.ReadByte()
-	if err != nil {
-		return err
-	}
-
-	v.fileSize, err = v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
-
-	v.numberOfFrames, err = v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
-
-	v.largestFrameSizeBytes, err = v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
+	v.videoCodecRevision = v.reader.ReadByte()
+	v.fileSize = v.reader.ReadUInt32()
+	v.numberOfFrames = v.reader.ReadUInt32()
+	v.largestFrameSizeBytes = v.reader.ReadUInt32()
 
 	const numBytesToSkip = 4 // Number of frames again?
 
-	v.streamReader.SkipBytes(numBytesToSkip)
+	v.reader.SkipBytes(numBytesToSkip)
 
-	v.VideoWidth, err = v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
-
-	v.VideoHeight, err = v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
-
-	fpsDividend, err := v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
-
-	fpsDivider, err := v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
+	v.VideoWidth = v.reader.ReadUInt32()
+	v.VideoHeight = v.reader.ReadUInt32()
+	fpsDividend := v.reader.ReadUInt32()
+	fpsDivider := v.reader.ReadUInt32()
 
 	v.FPS = uint32(float32(fpsDividend) / float32(fpsDivider))
 	v.FrameTimeMS = 1000 / v.FPS
 
-	videoFlags, err := v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
+	videoFlags := v.reader.ReadUInt32()
 
 	v.VideoMode = BinkVideoMode((videoFlags >> 28) & 0x0F)
 	v.HasAlphaPlane = ((videoFlags >> 20) & 0x1) == 1
 	v.Grayscale = ((videoFlags >> 17) & 0x1) == 1
 
-	numberOfAudioTracks, err := v.streamReader.ReadUInt32()
-	if err != nil {
-		return err
-	}
+	numberOfAudioTracks := v.reader.ReadUInt32()
 
 	v.AudioTracks = make([]BinkAudioTrack, numberOfAudioTracks)
 
 	for i := 0; i < int(numberOfAudioTracks); i++ {
-		v.streamReader.SkipBytes(numAudioTrackUnknownBytes)
+		v.reader.SkipBytes(numAudioTrackUnknownBytes)
 
-		v.AudioTracks[i].AudioChannels, err = v.streamReader.ReadUInt16()
-		if err != nil {
-			return err
-		}
+		v.AudioTracks[i].AudioChannels = v.reader.ReadUInt16()
 	}
 
 	for i := 0; i < int(numberOfAudioTracks); i++ {
-		v.AudioTracks[i].AudioSampleRateHz, err = v.streamReader.ReadUInt16()
-		if err != nil {
-			return err
-		}
+		v.AudioTracks[i].AudioSampleRateHz = v.reader.ReadUInt16()
 
 		var flags uint16
 
-		flags, err = v.streamReader.ReadUInt16()
-		if err != nil {
-			return err
-		}
+		flags = v.reader.ReadUInt16()
 
 		v.AudioTracks[i].Stereo = ((flags >> 13) & 0x1) == 1
 		v.AudioTracks[i].Algorithm = BinkAudioAlgorithm((flags >> 12) & 0x1)
 	}
 
 	for i := 0; i < int(numberOfAudioTracks); i++ {
-		v.AudioTracks[i].AudioTrackID, err = v.streamReader.ReadUInt32()
-		if err != nil {
-			return err
-		}
+		v.AudioTracks[i].AudioTrackID = v.reader.ReadUInt32()
 	}
 
 	v.FrameIndexTable = make([]uint32, v.numberOfFrames+1)
 
 	for i := 0; i < int(v.numberOfFrames+1); i++ {
-		v.FrameIndexTable[i], err = v.streamReader.ReadUInt32()
-		if err != nil {
-			return err
-		}
+		v.FrameIndexTable[i] = v.reader.ReadUInt32()
 	}
 
 	return nil
