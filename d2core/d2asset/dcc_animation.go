@@ -3,12 +3,11 @@ package d2asset
 import (
 	"errors"
 
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2util"
+	"github.com/gravestench/d2dcc"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2enum"
-
-	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2fileformats/d2dcc"
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2interface"
+	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2util"
 )
 
 var _ d2interface.Animation = &DCCAnimation{} // Static check to confirm struct conforms to
