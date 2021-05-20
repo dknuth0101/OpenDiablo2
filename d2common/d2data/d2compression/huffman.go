@@ -31,9 +31,8 @@ package d2compression
 //
 
 import (
+	bitstream2 "github.com/gravestench/bitstream"
 	"log"
-
-	"github.com/gravestench/unalignedreader"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2datautils"
 )
@@ -201,16 +200,18 @@ func getPrimes() [][]byte {
 	}
 }
 
-func decode(reader *unalignedreader.UnalignedReader, head *linkedNode) *linkedNode {
+func decode(bs *bitstream2.BitStream, head *linkedNode) *linkedNode {
 	node := head
 
+	bs.Options.ReadBeyondEOF = false
+
 	for node.child0 != nil {
-		if !reader.EnsureBits(1) {
+		bit, err := bs.ReadBit()
+		if err != nil {
 			log.Fatal("unexpected end of file")
 		}
 
-		bit := reader.ReadBit()
-		if bit == 0 {
+		if !bit {
 			node = node.child0
 			continue
 		}
@@ -389,19 +390,19 @@ func HuffmanDecompress(data []byte) []byte {
 	head := buildTree(tail)
 
 	outputstream := d2datautils.CreateStreamWriter()
-	reader := unalignedreader.New(data[1:], 0)
+	bs := bitstream2.FromBytes(data[1:]...)
 
 	var decoded int
 
 Loop:
 	for {
-		node := decode(reader, head)
+		node := decode(bs, head)
 		decoded = node.decompressedValue
 		switch decoded {
 		case 256:
 			break Loop
 		case 257:
-			newvalue := reader.ReadByte()
+			newvalue := bs.ReadBits(8).AsByte()
 
 			outputstream.PushBytes(newvalue)
 			tail = insertNode(tail, int(newvalue))

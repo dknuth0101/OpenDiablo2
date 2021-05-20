@@ -8,7 +8,7 @@ require (
 	github.com/go-restruct/restruct v1.2.0-alpha
 	github.com/google/uuid v1.1.2
 	github.com/gravestench/akara v0.0.0-20201014060234-a64208a7fd3c
-	github.com/gravestench/unalignedreader v0.0.0-20210516045122-1d189442840f
+	github.com/gravestench/bitstream v0.0.0-20210520055259-ffd9f9993bd1
 	github.com/gravestench/weightedcache v0.0.0-20210516042223-7d2377e12bd5
 	github.com/hajimehoshi/ebiten/v2 v2.0.2
 	github.com/kr/text v0.2.0 // indirect
