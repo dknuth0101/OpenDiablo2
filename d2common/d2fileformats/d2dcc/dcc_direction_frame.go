@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/OpenDiablo2/OpenDiablo2/d2common/d2geom"
+	bitstream2 "github.com/gravestench/bitstream"
 )
 
 // DCCDirectionFrame represents a direction frame for a DCC.
@@ -24,18 +25,18 @@ type DCCDirectionFrame struct {
 }
 
 // CreateDCCDirectionFrame Creates a DCCDirectionFrame for a DCC.
-func CreateDCCDirectionFrame(bits *reader, direction *DCCDirection) *DCCDirectionFrame {
+func CreateDCCDirectionFrame(bs *bitstream2.BitStream, direction *DCCDirection) *DCCDirectionFrame {
 	result := &DCCDirectionFrame{}
 
-	bits.ReadBitsAsUInt32(direction.Variable0Bits) // Variable0
+	bs.ReadBits(direction.Variable0Bits).AsUInt() // Variable0
 
-	result.Width = int(bits.ReadBitsAsUInt32(direction.WidthBits))
-	result.Height = int(bits.ReadBitsAsUInt32(direction.HeightBits))
-	result.XOffset = bits.ReadSignedBits(direction.XOffsetBits)
-	result.YOffset = bits.ReadSignedBits(direction.YOffsetBits)
-	result.NumberOfOptionalBytes = int(bits.ReadBitsAsUInt32(direction.OptionalDataBits))
-	result.NumberOfCodedBytes = int(bits.ReadBitsAsUInt32(direction.CodedBytesBits))
-	result.FrameIsBottomUp = bits.ReadBit() == 1
+	result.Width = int(bs.ReadBits(direction.WidthBits).AsUInt())
+	result.Height = int(bs.ReadBits(direction.HeightBits).AsUInt())
+	result.XOffset = bs.ReadBits(direction.XOffsetBits).AsInt()
+	result.YOffset = bs.ReadBits(direction.YOffsetBits).AsInt()
+	result.NumberOfOptionalBytes = int(bs.ReadBits(direction.OptionalDataBits).AsUInt())
+	result.NumberOfCodedBytes = int(bs.ReadBits(direction.CodedBytesBits).AsUInt())
+	result.FrameIsBottomUp = bs.ReadBits(1).AsUInt() == 1
 
 	if result.FrameIsBottomUp {
 		log.Panic("Bottom up frames are not implemented.")

@@ -3,7 +3,7 @@ package d2dcc
 import (
 	"errors"
 
-	"github.com/gravestench/unalignedreader"
+	bitstream2 "github.com/gravestench/bitstream"
 )
 
 const dccFileSignature = 0x74
@@ -26,30 +26,30 @@ func Load(fileData []byte) (*DCC, error) {
 		fileData: fileData,
 	}
 
-	var reader = unalignedreader.New(fileData, 0)
+	var bitstream = bitstream2.FromBytes(fileData...)
 
-	result.Signature = int(reader.ReadByte())
+	result.Signature = bitstream.ReadBits(8).AsInt()
 
 	if result.Signature != dccFileSignature {
 		return nil, errors.New("signature expected to be 0x74 but it is not")
 	}
 
-	result.Version = int(reader.ReadByte())
-	result.NumberOfDirections = int(reader.ReadByte())
-	result.FramesPerDirection = int(reader.ReadInt32())
+	result.Version = int(bitstream.ReadBits(8).AsByte())
+	result.NumberOfDirections = int(bitstream.ReadBits(8).AsByte())
+	result.FramesPerDirection = int(bitstream.ReadBits(32).AsInt32())
 
 	result.Directions = make([]*DCCDirection, result.NumberOfDirections)
 
-	if reader.ReadInt32() != 1 {
+	if bitstream.ReadBits(32).AsInt32() != 1 {
 		return nil, errors.New("this value isn't 1. It has to be 1")
 	}
 
-	reader.ReadInt32() // TotalSizeCoded
+	bitstream.ReadBits(32).AsInt32() // TotalSizeCoded
 
 	result.directionOffsets = make([]int, result.NumberOfDirections)
 
 	for i := 0; i < result.NumberOfDirections; i++ {
-		result.directionOffsets[i] = int(reader.ReadInt32())
+		result.directionOffsets[i] = int(bitstream.ReadBits(32).AsInt32())
 		result.Directions[i] = result.decodeDirection(i)
 	}
 
@@ -58,8 +58,12 @@ func Load(fileData []byte) (*DCC, error) {
 
 // decodeDirection decodes and returns the given direction
 func (d *DCC) decodeDirection(direction int) *DCCDirection {
-	return CreateDCCDirection(unalignedreader.New(d.fileData,
-		d.directionOffsets[direction]*directionOffsetMultiplier), d)
+	//return CreateDCCDirection(d2datautils.CreateBitMuncher(d.fileData,
+	//	d.directionOffsets[direction]*directionOffsetMultiplier), d)
+	bs := bitstream2.FromBytes(d.fileData...)
+	bs.SetPosition(d.directionOffsets[direction] * directionOffsetMultiplier)
+
+	return CreateDCCDirection(bs, d)
 }
 
 // Clone creates a copy of the DCC
